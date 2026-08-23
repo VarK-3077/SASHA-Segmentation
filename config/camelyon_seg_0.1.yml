@@ -1,0 +1,29 @@
+## RL hyper parameters
+B: 1
+
+# Dataset details
+dataset: camelyon16
+fglobal: 'mlp'
+
+## pretrained backbone
+backbone: 'ViT-S/16'   #'ResNet_50' 'ViT-S/16'
+pretrain: 'medical_ssl' #natural_supervised medical_ssl
+D_feat: 384
+D_inner: 128
+only_ce_as_reward: True
+
+
+# Model weights -
+frac_visit: 0.1
+cosine_threshold: 0.9
+classifier_ckpt_path: 'best_neurips_models/camelyon/classifier_ckpt/checkpoint-best.pt'
+mlp_fglobal_ckpt: 'best_neurips_models/camelyon/cosine_tsu/0.9/checkpoint-best.pt'
+level1_path: '/data2/tej/SASHA/hafed13julyintmdtfeat'
+level3_path: '/data2/tej/SASHA/camelyon_lr_features'
+rl_ckpt_path: 'best_neurips_models/camelyon/rl_agent_0.1frac/checkpoint-best_0.1.pt'
+
+# Extra Hyper params
+n_worker: 4
+pin_memory: False
+n_shot: -1
+dim_reduction: False
