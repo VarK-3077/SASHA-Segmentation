@@ -1,0 +1,42 @@
+[
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "seed": 0,
+  "name": "CHK_W0_lin_union_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "seed": 3,
+  "name": "CHK_W0_lin_union_s3"
+ }
+]

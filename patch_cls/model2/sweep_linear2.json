@@ -1,0 +1,992 @@
+[
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 0,
+  "name": "S00_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 1,
+  "name": "S00_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 200,
+  "seed": 0,
+  "name": "S01_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 200,
+  "seed": 1,
+  "name": "S01_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "S02_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "S02_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 200,
+  "seed": 0,
+  "name": "S03_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 200,
+  "seed": 1,
+  "name": "S03_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 0,
+  "name": "S04_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 1,
+  "name": "S04_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 200,
+  "seed": 0,
+  "name": "S05_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 200,
+  "seed": 1,
+  "name": "S05_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 0,
+  "name": "S06_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 1,
+  "name": "S06_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.01,
+  "epochs": 200,
+  "seed": 0,
+  "name": "S07_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.01,
+  "epochs": 200,
+  "seed": 1,
+  "name": "S07_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "S08_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "S08_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.03,
+  "epochs": 200,
+  "seed": 0,
+  "name": "S09_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.03,
+  "epochs": 200,
+  "seed": 1,
+  "name": "S09_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 0,
+  "name": "S10_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 1,
+  "name": "S10_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.1,
+  "epochs": 200,
+  "seed": 0,
+  "name": "S11_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.1,
+  "wd": 0.1,
+  "epochs": 200,
+  "seed": 1,
+  "name": "S11_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+s",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T00_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+s",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T00_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+v",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T01_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+v",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T01_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+q",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T02_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+q",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T02_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+v+q",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T03_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+v+q",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T03_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+xn+xm",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T04_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+xn+xm",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T04_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+s+v+q",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T05_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+s+v+q",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T05_s1"
+ },
+ {
+  "view": "x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T06_s0"
+ },
+ {
+  "view": "x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T06_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+ns+ms",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T07_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+ns+ms",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T07_s1"
+ },
+ {
+  "view": "L2:x+n+m",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T08_s0"
+ },
+ {
+  "view": "L2:x+n+m",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T08_s1"
+ },
+ {
+  "view": "L2:x+n+m+k+nk",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T09_s0"
+ },
+ {
+  "view": "L2:x+n+m+k+nk",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T09_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T90_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T90_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T91_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T91_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "T92_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "T92_s1"
+ }
+]

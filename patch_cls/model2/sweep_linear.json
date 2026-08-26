@@ -1,0 +1,1088 @@
+[
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.0001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P00_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.0001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P00_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.0001,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P01_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.0001,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P01_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P02_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P02_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P03_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P03_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P04_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P04_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P05_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P05_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.03,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P06_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.03,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P06_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P07_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P07_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.1,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P08_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.1,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P08_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P09_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P09_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.0001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P10_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.0001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P10_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.0001,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P11_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.0001,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P11_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P12_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P12_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.001,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P13_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.001,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P13_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P14_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P14_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P15_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P15_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P16_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P16_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P17_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.03,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P17_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 50,
+  "seed": 0,
+  "name": "P18_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 50,
+  "seed": 1,
+  "name": "P18_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 0,
+  "name": "P19_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.03,
+  "wd": 0.1,
+  "epochs": 100,
+  "seed": 1,
+  "name": "P19_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "Q20_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "Q20_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 100,
+  "seed": 0,
+  "name": "Q21_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.001,
+  "epochs": 100,
+  "seed": 1,
+  "name": "Q21_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 0,
+  "name": "Q22_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 1,
+  "name": "Q22_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 0,
+  "name": "Q23_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 100,
+  "seed": 1,
+  "name": "Q23_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.003,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "R00_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.003,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "R00_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [
+   1024,
+   512
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.003,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 0,
+  "name": "R01_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [
+   1024,
+   512
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.003,
+  "wd": 0.001,
+  "epochs": 50,
+  "seed": 1,
+  "name": "R01_s1"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [
+   256
+  ],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 0,
+  "name": "R02_s0"
+ },
+ {
+  "view": "L2:x+n+m+k",
+  "hidden": [
+   256
+  ],
+  "dropout": 0.0,
+  "bn": true,
+  "bs": 4096,
+  "patience": 16,
+  "loss": "bce",
+  "prior_init": true,
+  "rows": [
+   "agg",
+   "det",
+   "aug"
+  ],
+  "lr": 0.01,
+  "wd": 0.01,
+  "epochs": 50,
+  "seed": 1,
+  "name": "R02_s1"
+ }
+]
