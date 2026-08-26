@@ -1,0 +1,4 @@
+[
+{"name":"lgb_ctxpyr","view":"x+c+n+m+k+s","num_leaves":63,"lr":0.05,"min_leaf":200,"ff":0.3,"bf":0.8,"rounds":2000,"patience":50,"threads":60,"max_bin":63},
+{"name":"lgb_ctxpyr_reg","view":"x+c+n+m+k+s","num_leaves":31,"lr":0.03,"min_leaf":1000,"ff":0.2,"bf":0.6,"l2":50.0,"rounds":3000,"patience":80,"threads":60,"max_bin":63}
+]

@@ -1,0 +1,4 @@
+[
+{"name":"logreg_ctxpyr","view":"x+c+n+m+k+s","C":1.0,"max_iter":120},
+{"name":"logreg_L2ctxpyr","view":"L2:x+c+n+m+k","C":1.0,"max_iter":120}
+]

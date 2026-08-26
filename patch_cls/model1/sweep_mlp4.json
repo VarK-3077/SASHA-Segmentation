@@ -1,0 +1,506 @@
+[
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "name": "aA_none"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.1,
+  "name": "aA_n01"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.3,
+  "name": "aA_n03"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.6,
+  "name": "aA_n06"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "mixup": 0.2,
+  "name": "aA_mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "in_drop": 0.2,
+  "name": "aA_idrop"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+xc",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.3,
+  "mixup": 0.2,
+  "name": "aA_n03mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "name": "aB_none"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "in_noise": 0.1,
+  "name": "aB_n01"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "in_noise": 0.3,
+  "name": "aB_n03"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "in_noise": 0.6,
+  "name": "aB_n06"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "mixup": 0.2,
+  "name": "aB_mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "in_drop": 0.2,
+  "name": "aB_idrop"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "in_noise": 0.3,
+  "mixup": 0.2,
+  "name": "aB_n03mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "name": "aC_none"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.1,
+  "name": "aC_n01"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.3,
+  "name": "aC_n03"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.6,
+  "name": "aC_n06"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "mixup": 0.2,
+  "name": "aC_mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_drop": 0.2,
+  "name": "aC_idrop"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.3,
+  "mixup": 0.2,
+  "name": "aC_n03mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "name": "aD_none"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.1,
+  "name": "aD_n01"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.3,
+  "name": "aD_n03"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.6,
+  "name": "aD_n06"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "mixup": 0.2,
+  "name": "aD_mix"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_drop": 0.2,
+  "name": "aD_idrop"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 12,
+  "patience": 16,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "in_noise": 0.3,
+  "mixup": 0.2,
+  "name": "aD_n03mix"
+ }
+]

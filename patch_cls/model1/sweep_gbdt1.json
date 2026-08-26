@@ -1,0 +1,7 @@
+[
+{"name":"lgb_x","view":"x","num_leaves":63,"lr":0.05,"min_leaf":200,"ff":0.3,"bf":0.8,"rounds":2000,"patience":50,"threads":100,"max_bin":63},
+{"name":"lgb_x_c","view":"x+c","num_leaves":63,"lr":0.05,"min_leaf":200,"ff":0.3,"bf":0.8,"rounds":2000,"patience":50,"threads":100,"max_bin":63},
+{"name":"lgb_L2x_c_s","view":"L2:x+c+s","num_leaves":63,"lr":0.05,"min_leaf":200,"ff":0.3,"bf":0.8,"rounds":2000,"patience":50,"threads":100,"max_bin":63},
+{"name":"lgb_x_c_spw","view":"x+c","num_leaves":63,"lr":0.05,"min_leaf":200,"ff":0.3,"bf":0.8,"rounds":2000,"patience":50,"threads":100,"max_bin":63,"scale_pos_weight":"auto"},
+{"name":"lgb_x_c_deep","view":"x+c","num_leaves":255,"lr":0.05,"min_leaf":100,"ff":0.3,"bf":0.8,"rounds":2000,"patience":50,"threads":100,"max_bin":63}
+]

@@ -1,0 +1,172 @@
+[
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x",
+  "view": "x"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_c",
+  "view": "x+c"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_xc",
+  "view": "x+xc"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_s",
+  "view": "x+s"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_xs",
+  "view": "x+xs"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_xc_xs",
+  "view": "x+xc+xs"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_c_s",
+  "view": "x+c+s"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_x_c_xc_xs",
+  "view": "x+c+xc+xs"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_L2x_xc_xs",
+  "view": "L2:x+xc+xs"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "name": "v_L2x_c_s",
+  "view": "L2:x+c+s"
+ }
+]

@@ -1,0 +1,703 @@
+[
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+m+k",
+  "name": "qA_x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n+m+k",
+  "name": "qB_x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+m+k+s",
+  "name": "qB_x_c_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+k+s",
+  "name": "qA_x_c_n_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n+k+s",
+  "name": "qB_x_c_n_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+m+s",
+  "name": "qA_L2x_c_n_m_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+n+m+s",
+  "name": "qB_L2x_c_n_m_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+m+k+s",
+  "name": "qC_x_c_n_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+m+k",
+  "name": "qC_L2x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+n+m+k",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 0,
+  "name": "F1_s0"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+n+m+k",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 1,
+  "name": "F1_s1"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+n+m+k",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 2,
+  "name": "F1_s2"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+n+m+k",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 3,
+  "name": "F1_s3"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+n+m+k",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 4,
+  "name": "F1_s4"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+n+m+k",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 5,
+  "name": "F1_s5"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "seed": 0,
+  "name": "F2_s0"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "seed": 1,
+  "name": "F2_s1"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "seed": 2,
+  "name": "F2_s2"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "seed": 3,
+  "name": "F2_s3"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "seed": 4,
+  "name": "F2_s4"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+s",
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "seed": 5,
+  "name": "F2_s5"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 0,
+  "name": "F3_s0"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 1,
+  "name": "F3_s1"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 2,
+  "name": "F3_s2"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 3,
+  "name": "F3_s3"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 4,
+  "name": "F3_s4"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 5,
+  "name": "F3_s5"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc+n+m",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 0,
+  "name": "F4_s0"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc+n+m",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 1,
+  "name": "F4_s1"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc+n+m",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 2,
+  "name": "F4_s2"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc+n+m",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 3,
+  "name": "F4_s3"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc+n+m",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 4,
+  "name": "F4_s4"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "L2:x+c+xc+n+m",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "seed": 5,
+  "name": "F4_s5"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "seed": 0,
+  "name": "F5_s0"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "seed": 1,
+  "name": "F5_s1"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "seed": 2,
+  "name": "F5_s2"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "seed": 3,
+  "name": "F5_s3"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "seed": 4,
+  "name": "F5_s4"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "x+c+n+m+k+s",
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "seed": 5,
+  "name": "F5_s5"
+ }
+]

@@ -1,0 +1,6 @@
+[
+{"name":"logreg_raw","view":"raw","C":1.0,"max_iter":200},
+{"name":"logreg_l2","view":"l2","C":1.0,"max_iter":200},
+{"name":"logreg_ctx","view":"ctx","C":1.0,"max_iter":200},
+{"name":"logreg_raw_bal","view":"raw","C":1.0,"max_iter":200,"class_weight":"balanced"}
+]

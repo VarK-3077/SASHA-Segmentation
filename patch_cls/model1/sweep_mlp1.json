@@ -1,0 +1,176 @@
+[
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "raw",
+  "name": "mlp_raw_bce"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "l2",
+  "name": "mlp_l2_bce"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "ctx",
+  "name": "mlp_ctx_bce"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "l2ctx",
+  "name": "mlp_l2ctx_bce"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "diff",
+  "name": "mlp_diff_bce"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "ctxd",
+  "name": "mlp_ctxd_bce"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "weighted",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "raw",
+  "pos_weight": "auto",
+  "name": "mlp_raw_weighted"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "focal",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "raw",
+  "gamma": 2.0,
+  "name": "mlp_raw_focal2"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "raw",
+  "neg_keep": 0.1,
+  "name": "mlp_raw_sub10"
+ },
+ {
+  "hidden": [
+   512,
+   256
+  ],
+  "dropout": 0.1,
+  "bn": true,
+  "loss": "bce",
+  "epochs": 6,
+  "patience": 12,
+  "eval_every": 76,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 4096,
+  "view": "raw",
+  "label_smooth": 0.01,
+  "name": "mlp_raw_ls01"
+ }
+]

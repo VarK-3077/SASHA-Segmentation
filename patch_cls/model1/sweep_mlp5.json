@@ -1,0 +1,447 @@
+[
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+n",
+  "name": "nA_x_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+n",
+  "name": "nB_x_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xn",
+  "name": "nA_x_xn"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+xn",
+  "name": "nB_x_xn"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n",
+  "name": "nA_x_c_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n",
+  "name": "nB_x_c_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xc+xn",
+  "name": "nA_x_xc_xn"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+xc+xn",
+  "name": "nB_x_xc_xn"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+s",
+  "name": "nA_x_c_n_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n+s",
+  "name": "nB_x_c_n_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n",
+  "name": "nA_L2x_c_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+n",
+  "name": "nB_L2x_c_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+s",
+  "name": "nA_L2x_c_n_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+n+s",
+  "name": "nB_L2x_c_n_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+s+n",
+  "name": "nA_L2x_c_s_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+s+n",
+  "name": "nB_L2x_c_s_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+xn",
+  "name": "nA_x_c_xn"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+xn",
+  "name": "nB_x_c_xn"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+xc+n",
+  "name": "nA_L2x_c_xc_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+xc+n",
+  "name": "nB_L2x_c_xc_n"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xc+xn+xs",
+  "name": "nA_x_xc_xn_xs"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+xc+xn+xs",
+  "name": "nB_x_xc_xn_xs"
+ },
+ {
+  "bn": true,
+  "loss": "weighted",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xc",
+  "name": "imb_wt",
+  "pos_weight": "auto"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xc",
+  "name": "imb_sub10",
+  "neg_keep": 0.1
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xc",
+  "name": "imb_sub02",
+  "neg_keep": 0.02
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+xc",
+  "name": "imb_plain"
+ }
+]

@@ -1,0 +1,310 @@
+[
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+m+k",
+  "name": "qA_x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n+m+k",
+  "name": "qB_x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+m+k+s",
+  "name": "qA_x_c_n_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n+m+k+s",
+  "name": "qB_x_c_n_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+m+k",
+  "name": "qA_L2x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+n+m+k",
+  "name": "qB_L2x_c_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+m+k+s",
+  "name": "qA_L2x_c_n_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+n+m+k+s",
+  "name": "qB_L2x_c_n_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+n+m+k",
+  "name": "qA_x_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+n+m+k",
+  "name": "qB_x_n_m_k"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+m+k+s",
+  "name": "qA_x_c_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+m+k+s",
+  "name": "qB_x_c_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+k+s",
+  "name": "qA_x_c_n_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "x+c+n+k+s",
+  "name": "qB_x_c_n_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+m+s",
+  "name": "qA_L2x_c_n_m_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   512,
+   256
+  ],
+  "lr": 0.001,
+  "view": "L2:x+c+n+m+s",
+  "name": "qB_L2x_c_n_m_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "view": "x+c+n+m+k+s",
+  "name": "qC_x_c_n_m_k_s"
+ },
+ {
+  "bn": true,
+  "loss": "bce",
+  "epochs": 8,
+  "patience": 14,
+  "eval_every": 76,
+  "wd": 0.0001,
+  "bs": 4096,
+  "dropout": 0.3,
+  "hidden": [
+   1024,
+   512,
+   256
+  ],
+  "lr": 0.0003,
+  "view": "L2:x+c+n+m+k",
+  "name": "qC_L2x_c_n_m_k"
+ }
+]

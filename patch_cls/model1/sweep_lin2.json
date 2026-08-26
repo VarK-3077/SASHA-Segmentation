@@ -1,0 +1,4 @@
+[
+{"name":"logreg_x_c_n_m_s","view":"x+c+n+m+s","C":1.0,"max_iter":150},
+{"name":"logreg_L2x_c_n","view":"L2:x+c+n","C":1.0,"max_iter":150}
+]
