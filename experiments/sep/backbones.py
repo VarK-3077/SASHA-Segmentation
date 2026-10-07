@@ -52,11 +52,30 @@ def _midnight():
     return ClsMean(m), HALF, 3072
 
 
+def _kaiko(name):
+    def load():
+        import torch.hub
+        m = torch.hub.load('kaiko-ai/towards_large_pathology_fms', name, trust_repo=True)
+        return m, HALF, {'vits16': 384, 'vits8': 384, 'vitb16': 768, 'vitb8': 768, 'vitl14': 1024}[name]
+    return load
+
+
+def _dinov2_s():
+    import timm
+    return timm.create_model('vit_small_patch14_dinov2.lvd142m', pretrained=True, num_classes=0, img_size=224), IMAGENET, 384
+
+
 LOADERS = {
     'vits_dino': _vits_dino,
     'resnet50_in': _resnet50,
     'phikon_v2': _phikon_v2,
     'midnight': _midnight,
+    'dinov2_s': _dinov2_s,
+    'kaiko_vits16': _kaiko('vits16'),
+    'kaiko_vits8': _kaiko('vits8'),
+    'kaiko_vitb16': _kaiko('vitb16'),
+    'kaiko_vitb8': _kaiko('vitb8'),
+    'kaiko_vitl14': _kaiko('vitl14'),
 }
 
 
