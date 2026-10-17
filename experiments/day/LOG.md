@@ -104,3 +104,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   logs `bc_l3_*.log`.
 - 03:21 launched `l3_bc_oracle`, `l3_bc_pred`, `l3_bc_none` on cuda:1 (l3c config, `--init`
   from the BC checkpoints) next to the two L2 runs; GPU 1 memory 10 GB + 3 x ~6 GB.
+- 03:34 all five L3 diagnostics scored (balanced pick; Dice all / tumour / normal clean / zoom):
+  l3_oracle 0.859 / 0.678 / 0.953 / 0.03; l3_pred 0.857 / 0.626 / 0.976 / 0.09;
+  l3c_s1 0.851 / 0.607 / 0.976 / 0.03; l3c_s2 0.814 / 0.613 / 0.918 / 0.05;
+  l3c_s3 0.808 / 0.527 / 0.953 / 0.05; with l3c (seed 0) 0.828 / 0.565: plain state over four
+  seeds = tumour 0.578 ± 0.034, all 0.825 ± 0.017. Predicted buckets +0.05 tumour Dice (about
+  1.4 sd), ground-truth buckets +0.10. Boundary zoom rate stays 0.25-0.37 in every run.

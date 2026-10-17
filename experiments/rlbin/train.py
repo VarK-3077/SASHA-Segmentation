@@ -26,7 +26,7 @@ def load_slides(split, device, trusted_only, state='none', level=3):
             continue
         c = dict(c)
         if state == 'pred':
-            c['p_bucket'] = np.load(os.path.join(P.PBUCKET, f[:-4] + '.npy'))
+            c['p_bucket'] = np.load(os.path.join(P.PBUCKET if level == 3 else P.PBUCKET + '_l2', f[:-4] + '.npy'))
         out.append(Slide(f[:-4], c, device, state))
     return out
 
