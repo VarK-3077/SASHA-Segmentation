@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from experiments.rlbin import paths as P
-from experiments.rlbin.env import CORE, UNASSIGNED, ZOOMED
+from experiments.rlbin.env import CORE, NORMAL, UNASSIGNED, ZOOMED
 from experiments.rlbin.policy import Policy, action_mask
 from experiments.rlbin.train import evaluate, load_slides
 from experiments.sep import buckets as B
@@ -22,6 +22,8 @@ def oracle_trajectory(slide, rng, n_states):
     status = np.zeros(slide.n, np.int8)
     todo = [(i, ZOOMED) for i in np.flatnonzero(np.isin(slide.bucket, (B.BOUNDARY, B.SMALL)))]
     todo += [(i, CORE) for i in np.flatnonzero(slide.bucket == B.CORE)]
+    if slide.mode == 'lr':   # in 'lr' mode the oracle also clears low-res false positives on normal tiles
+        todo += [(i, NORMAL) for i in np.flatnonzero((slide.bucket == B.NORMAL) & (slide.lr_pos > 0))]
     rng.shuffle(todo)
     keep = sorted(rng.choice(len(todo) + 1, min(n_states, len(todo) + 1), replace=False))
     snaps, allowed = [], []
@@ -41,8 +43,11 @@ def allowed_set(slide, status):
     free = status == UNASSIGNED
     zoom = free & np.isin(slide.bucket, (B.BOUNDARY, B.SMALL))
     core = free & (slide.bucket == B.CORE)
-    stop = np.array([not (zoom.any() or core.any())])
-    return np.concatenate([zoom, core, stop])
+    parts = [zoom, core]
+    if slide.mode == 'lr':
+        parts.append(free & (slide.bucket == B.NORMAL) & (slide.lr_pos > 0))
+    stop = np.array([not any(p.any() for p in parts)])
+    return np.concatenate(parts + [stop])
 
 
 def glob_of(slide, status):
@@ -58,13 +63,14 @@ def main():
     ap.add_argument('--state', default='oracle', choices=('none', 'pred', 'oracle'))
     ap.add_argument('--epochs', type=int, default=6)
     ap.add_argument('--states_per_slide', type=int, default=24)
+    ap.add_argument('--mode', default='neg', choices=('neg', 'lr'))
     ap.add_argument('--tag', default='bc')
     a = ap.parse_args()
     torch.manual_seed(0)
     rng = np.random.default_rng(0)
-    train = load_slides('train', a.device, trusted_only=True, state=a.state, level=a.level)
-    val = load_slides('val', a.device, trusted_only=False, state=a.state, level=a.level)
-    policy = Policy(d_emb=train[0].d_emb).to(a.device)
+    train = load_slides('train', a.device, trusted_only=True, state=a.state, level=a.level, mode=a.mode)
+    val = load_slides('val', a.device, trusted_only=False, state=a.state, level=a.level, mode=a.mode)
+    policy = Policy(d_emb=train[0].d_emb, n_act=train[0].n_act, n_dyn=train[0].n_dyn).to(a.device)
     opt = torch.optim.AdamW(policy.parameters(), lr=3e-4, weight_decay=1e-4)
     t0 = time.time()
     for ep in range(a.epochs):
@@ -76,7 +82,7 @@ def main():
             st = torch.tensor(snaps, device=a.device)
             gl = torch.tensor(np.stack([glob_of(s, x) for x in snaps]), device=a.device)
             logits, _ = policy(s.static.expand(len(st), -1, -1), s.dyn_features(st), gl)
-            logits = logits.masked_fill(~action_mask(st, s.cap), float('-inf'))
+            logits = logits.masked_fill(~action_mask(st, s.cap, s.n_act), float('-inf'))
             logp = torch.log_softmax(logits, -1)
             ok = torch.tensor(allowed, device=a.device)
             loss = -torch.logsumexp(logp.masked_fill(~ok, float('-inf')), -1).mean()

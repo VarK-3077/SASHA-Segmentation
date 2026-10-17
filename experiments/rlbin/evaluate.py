@@ -37,9 +37,9 @@ def main():
     a = ap.parse_args()
     args_path = os.path.join(P.ROOT, f'args_{a.tag}.json')
     targs = json.load(open(args_path)) if os.path.exists(args_path) else {}
-    state, level = targs.get('state', 'none'), targs.get('level', 3)
-    test = load_slides('test', a.device, trusted_only=False, state=state, level=level)
-    policy = Policy(d_emb=test[0].d_emb).to(a.device)
+    state, level, mode = targs.get('state', 'none'), targs.get('level', 3), targs.get('mode', 'neg')
+    test = load_slides('test', a.device, trusted_only=False, state=state, level=level, mode=mode)
+    policy = Policy(d_emb=test[0].d_emb, n_act=test[0].n_act, n_dyn=test[0].n_dyn).to(a.device)
     ckpt = os.path.join(P.CKPT, f'best_{a.tag}.pt')
     if a.criterion == 'balanced':
         evals = [json.loads(l) for l in open(os.path.join(P.ROOT, f'train_{a.tag}.jsonl')) if '"val"' in l]
@@ -49,10 +49,11 @@ def main():
     policy.load_state_dict(torch.load(ckpt, map_location=a.device))
     policy.eval()
     agent, rows = evaluate(policy, test, a.device)
-    results = {'agent': agent, 'checkpoint': ckpt, 'state': state, 'level': level}
+    results = {'agent': agent, 'checkpoint': ckpt, 'state': state, 'level': level, 'mode': mode}
     tag_out = a.tag if a.criterion == 'best' else f'{a.tag}_{a.criterion}'
-    lines = [f'# RL binning, level {level}, state {state}, test slides (129), run {a.tag}, checkpoint by {a.criterion}', '',
-             'Dice over 512 px sub-patches; untouched tiles are negative. Columns after zoom frac: fraction of each',
+    untouched = 'negative' if mode == 'neg' else 'the low-res mask'
+    lines = [f'# RL binning, level {level}, state {state}, mode {mode}, test slides (129), run {a.tag}, checkpoint by {a.criterion}', '',
+             f'Dice over 512 px sub-patches; untouched tiles are {untouched}. Columns after zoom frac: fraction of each',
              'bucket the method zoomed (boundary, small, core, normal), then the fraction it marked core.', '',
              '| method | Dice all | Dice tumour | normal slides clean | zoom frac | z-bnd | z-small | z-core | z-normal | c-bnd | c-small | c-core | c-normal |',
              '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
@@ -61,6 +62,7 @@ def main():
     lr_all = float(np.mean([lr_only_dice(s) for s in test]))
     lr_tum = float(np.mean([lr_only_dice(s) for s in tum]))
     lines.append(f'| low-res mask only, no zoom | {lr_all:.3f} | {lr_tum:.3f} | - | 0 | - | - | - | - | - | - | - | - |')
+    results['low-res mask only'] = {'dice_all': lr_all, 'dice_tumour': lr_tum, 'zoom_frac': 0.0}
     for kind, zf in (('zoom_all', 0), ('sup_router', agent['zoom_frac']), ('sup_router', 0.1), ('sup_router', 0.2),
                      ('sup_router', 0.5), ('oracle_route', 0)):
         agg = baseline_rows(test, kind, zf)

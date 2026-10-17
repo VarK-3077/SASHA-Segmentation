@@ -52,8 +52,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--level', type=int, default=3, choices=(3, 2))
     ap.add_argument('--device', default='cpu')
+    ap.add_argument('--mode', default='neg', choices=('neg', 'lr'))
     a = ap.parse_args()
-    test = load_slides('test', a.device, trusted_only=False, level=a.level)
+    test = load_slides('test', a.device, trusted_only=False, level=a.level, mode=a.mode)
     rng = np.random.default_rng(0)
     out = {'curves': {}, 'points': {}}
     for kind in ('random', 'greedy', 'uncertainty', 'supervised router', 'ground-truth order'):
@@ -64,13 +65,14 @@ def main():
     out['points']['oracle routing'] = {'zoom_frac': orc['zoom_frac'], 'dice_all': orc['dice_all'], 'dice_tumour': orc['dice_tumour']}
     for f in sorted(glob.glob(os.path.join(P.ROOT, 'results_*.json'))):
         r = json.load(open(f))
-        if r.get('level', 3) != a.level:
+        if r.get('level', 3) != a.level or r.get('mode', 'neg') != a.mode:
             continue
         tag = os.path.basename(f)[8:-5]
         out['points'][f'RL {tag}'] = {'zoom_frac': r['agent']['zoom_frac'], 'dice_all': r['agent']['dice_all'],
                                       'dice_tumour': r['agent']['dice_tumour']}
-    json.dump(out, open(os.path.join(P.ROOT, f'frontier_L{a.level}.json'), 'w'), indent=1)
-    plot(out, a.level)
+    suffix = f'L{a.level}' + ('' if a.mode == 'neg' else '_lr')
+    json.dump(out, open(os.path.join(P.ROOT, f'frontier_{suffix}.json'), 'w'), indent=1)
+    plot(out, suffix)
 
 
 def plot(out, level):
@@ -99,9 +101,9 @@ def plot(out, level):
         ax.grid(alpha=0.25)
         ax.spines[['top', 'right']].set_visible(False)
     axes[0].legend(fontsize=8, frameon=False)
-    fig.suptitle(f'Quality vs zoom fraction, level {level}', fontsize=11)
+    fig.suptitle(f'Quality vs zoom fraction, {level}', fontsize=11)
     fig.tight_layout()
-    fig.savefig(os.path.join(P.ROOT, f'frontier_L{level}.png'))
+    fig.savefig(os.path.join(P.ROOT, f'frontier_{level}.png'))
 
 
 if __name__ == '__main__':

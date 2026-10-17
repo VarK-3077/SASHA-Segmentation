@@ -1,10 +1,11 @@
 # Scoring of a finished episode and of the label-free and label-using baselines, all with the
 # same sub-patch Dice the environment rewards. Bucket rates say what the agent did with each
-# kind of tile: zoomed it, called it core, or left it as normal.
+# kind of tile: zoomed it, called it core, called it normal, or left it untouched (negative in
+# mode 'neg', the low-res mask in mode 'lr').
 
 import numpy as np
 
-from experiments.rlbin.env import CORE, ZOOMED, entropy
+from experiments.rlbin.env import CORE, NORMAL, ZOOMED, entropy
 from experiments.sep import buckets as B
 
 
@@ -14,9 +15,11 @@ def dice_of(pred, gt):
 
 
 def compose(slide, status):
-    pred = np.zeros_like(slide.gt)
+    pred = (slide.p_lr >= 0.5) if slide.mode == 'lr' else np.zeros_like(slide.gt)
+    pred = pred.copy()
     pred[status == ZOOMED] = slide.p_hr[status == ZOOMED] >= 0.5
     pred[status == CORE] = True
+    pred[status == NORMAL] = False
     return pred
 
 
@@ -29,6 +32,7 @@ def episode_metrics(slide, status, steps):
         if m.any():
             out[f'{name}_zoom'] = float((status[m] == ZOOMED).mean())
             out[f'{name}_core'] = float((status[m] == CORE).mean())
+            out[f'{name}_normal'] = float((status[m] == NORMAL).mean())
             out[f'{name}_n'] = int(m.sum())
     return out
 
@@ -43,7 +47,7 @@ def aggregate(rows):
            'zoom_frac': float(np.mean([r['zoom_frac'] for r in rows])),
            'steps_frac': float(np.mean([r['steps_frac'] for r in rows]))}
     for name in B.NAMES:
-        for what in ('zoom', 'core'):
+        for what in ('zoom', 'core', 'normal'):
             vals = [(r[f'{name}_{what}'], r[f'{name}_n']) for r in rows if f'{name}_n' in r]
             if vals:
                 out[f'{name}_{what}'] = float(sum(v * n for v, n in vals) / sum(n for _, n in vals))
@@ -51,13 +55,17 @@ def aggregate(rows):
 
 
 def baseline_status(slide, kind, zoom_frac=0.0):
-    """Label-free routers and the label-using oracle, expressed as a status vector."""
+    """Label-free routers and the label-using oracle, expressed as a status vector. In mode
+    'lr' the oracle also marks normal-bucket tiles normal, so its mask carries no low-res
+    false positives; the router leaves untouched tiles to the low-res mask."""
     status = np.zeros(slide.n, np.int8)
     if kind == 'zoom_all':
         status[:] = ZOOMED
     elif kind == 'oracle_route':
         status[slide.bucket == B.CORE] = CORE
         status[np.isin(slide.bucket, (B.BOUNDARY, B.SMALL))] = ZOOMED
+        if slide.mode == 'lr':
+            status[slide.bucket == B.NORMAL] = NORMAL
     elif kind == 'sup_router':
         pbar = slide.p_lr.mean(1)
         status[pbar >= 0.9] = CORE

@@ -17,7 +17,7 @@ from experiments.rlbin.policy import Policy
 from experiments.rlbin.ppo import run_episode, update
 
 
-def load_slides(split, device, trusted_only, state='none', level=3):
+def load_slides(split, device, trusted_only, state='none', level=3, mode='neg'):
     cache = P.CACHE if level == 3 else P.CACHE_L2
     out = []
     for f in sorted(os.listdir(cache)):
@@ -27,7 +27,7 @@ def load_slides(split, device, trusted_only, state='none', level=3):
         c = dict(c)
         if state == 'pred':
             c['p_bucket'] = np.load(os.path.join(P.PBUCKET if level == 3 else P.PBUCKET + '_l2', f[:-4] + '.npy'))
-        out.append(Slide(f[:-4], c, device, state))
+        out.append(Slide(f[:-4], c, device, state, mode))
     return out
 
 
@@ -52,15 +52,16 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--level', type=int, default=3, choices=(3, 2))
     ap.add_argument('--init', default='', help='checkpoint to start the policy from (e.g. a bc.py warm start)')
+    ap.add_argument('--mode', default='neg', choices=('neg', 'lr'), help='what an untouched tile means at the end')
     ap.add_argument('--tag', default='l3')
     a = ap.parse_args()
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
-    train = load_slides('train', a.device, trusted_only=True, state=a.state, level=a.level)
-    val = load_slides('val', a.device, trusted_only=False, state=a.state, level=a.level)
+    train = load_slides('train', a.device, trusted_only=True, state=a.state, level=a.level, mode=a.mode)
+    val = load_slides('val', a.device, trusted_only=False, state=a.state, level=a.level, mode=a.mode)
     json.dump(vars(a), open(os.path.join(P.ROOT, f'args_{a.tag}.json'), 'w'), indent=1)
     print(f'train {len(train)} slides ({sum(s.gt_pos > 0 for s in train)} tumour), val {len(val)}', flush=True)
-    policy = Policy(d_emb=train[0].d_emb).to(a.device)
+    policy = Policy(d_emb=train[0].d_emb, n_act=train[0].n_act, n_dyn=train[0].n_dyn).to(a.device)
     if a.init:
         policy.load_state_dict(torch.load(a.init, map_location=a.device))
         agg0, _ = evaluate(policy, val, a.device)

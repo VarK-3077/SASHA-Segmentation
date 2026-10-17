@@ -19,7 +19,7 @@ def run_episode(policy, slide, device, deterministic=False):
         gl = torch.tensor(glob, device=device)
         with torch.no_grad():
             logits, v = policy(slide.static, slide.dyn_features(st), gl)
-            logits = logits.masked_fill(~action_mask(st, slide.cap), float('-inf'))
+            logits = logits.masked_fill(~action_mask(st, slide.cap, slide.n_act), float('-inf'))
             dist = torch.distributions.Categorical(logits=logits)
             a = logits.argmax() if deterministic else dist.sample()
             lp = dist.log_prob(a)
@@ -61,7 +61,7 @@ def update(policy, opt, episodes, device, epochs=4, ent=ENT):
             st = torch.tensor(r['status'][sl], device=device)
             gl = torch.tensor(r['glob'][sl], device=device)
             logits, v = policy(s.static.expand(len(st), -1, -1), s.dyn_features(st), gl)
-            logits = logits.masked_fill(~action_mask(st, s.cap), float('-inf'))
+            logits = logits.masked_fill(~action_mask(st, s.cap, s.n_act), float('-inf'))
             dist = torch.distributions.Categorical(logits=logits)
             a = torch.tensor(r['action'][sl], device=device)
             ratio = torch.exp(dist.log_prob(a) - torch.tensor(r['logp'][sl], device=device))
