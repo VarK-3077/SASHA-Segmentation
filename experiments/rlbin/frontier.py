@@ -38,7 +38,7 @@ def curve(slides, kind, rng):
         elif kind == 'uncertainty':
             order = np.argsort(-entropy(s.p_lr))
         elif kind == 'ground-truth order':
-            order = np.lexsort((-entropy(s.p_lr), -(s.gt.mean(1) > 0)))
+            order = np.lexsort((-entropy(s.p_lr), -(s.gt.mean(1) > 0).astype(np.float32)))
         for f in FRACS:
             if kind == 'supervised router':
                 status = baseline_status(s, 'sup_router', f)
