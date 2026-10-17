@@ -148,5 +148,15 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   three `l3_ft_*` fine-tunes started while the three `l3_bc_*` runs were still training there
   (six processes on cuda:1, no OOM so far). Not what the gate was meant to wait for; harmless
   apart from slower updates.
+- 05:00 scored (balanced pick; Dice all / tumour / clean / zoom; boundary / small zoomed):
+  `l3_bc_oracle` (BC then PPO at lr 1e-4) 0.862 / 0.664 / 0.965 / 0.05; 0.15 / 0.28 — PPO at
+  lr 1e-4 moved it off the cloned routing (val tumour 0.745 at init -> pick at update 510).
+  `l3_bc_pred` 0.804 / 0.494; `l3_bc_none` 0.831 / 0.617 (pick at update 90, i.e. close to BC).
+  **`l3_ft_oracle` (BC then PPO at lr 1e-5 / entropy 0.001): 0.900 / 0.751 / 0.976 / 0.028;
+  boundary zoomed 0.95, small zoomed 0.97, core zoomed 0.42 + marked 0.42.** That is within
+  0.02-0.03 of the oracle routing (0.916 / 0.776 / 0.988 at 0.02) with the same reads. So the
+  PPO machinery reproduces and holds the lookup policy once it starts near it and is updated
+  gently; the earlier failures were the optimiser settings, not the objective.
+  In flight: `l3_ft_pred` val tumour 0.837 and `l3_ft_none` 0.754 at update 140 (zoom 0.27).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
