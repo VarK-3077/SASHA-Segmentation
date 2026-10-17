@@ -14,8 +14,8 @@ from experiments.stop.rollout import load_heads, predict
 from experiments.rlbin import paths as P
 
 
-def neighbour_mean(values, coords):
-    g = coords // 2048
+def neighbour_mean(values, coords, step=2048):
+    g = coords // step
     idx = {(int(x), int(y)): i for i, (x, y) in enumerate(g)}
     out = np.zeros(len(values), np.float32)
     for i, (x, y) in enumerate(g):

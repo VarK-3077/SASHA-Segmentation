@@ -36,9 +36,10 @@ def main():
                          "0.5*val tumour Dice + 0.5*val normal-slides-clean")
     a = ap.parse_args()
     args_path = os.path.join(P.ROOT, f'args_{a.tag}.json')
-    state = json.load(open(args_path))['state'] if os.path.exists(args_path) else 'none'
-    test = load_slides('test', a.device, trusted_only=False, state=state)
-    policy = Policy().to(a.device)
+    targs = json.load(open(args_path)) if os.path.exists(args_path) else {}
+    state, level = targs.get('state', 'none'), targs.get('level', 3)
+    test = load_slides('test', a.device, trusted_only=False, state=state, level=level)
+    policy = Policy(d_emb=test[0].d_emb).to(a.device)
     ckpt = os.path.join(P.CKPT, f'best_{a.tag}.pt')
     if a.criterion == 'balanced':
         evals = [json.loads(l) for l in open(os.path.join(P.ROOT, f'train_{a.tag}.jsonl')) if '"val"' in l]
@@ -48,9 +49,9 @@ def main():
     policy.load_state_dict(torch.load(ckpt, map_location=a.device))
     policy.eval()
     agent, rows = evaluate(policy, test, a.device)
-    results = {'agent': agent, 'checkpoint': ckpt, 'state': state}
+    results = {'agent': agent, 'checkpoint': ckpt, 'state': state, 'level': level}
     tag_out = a.tag if a.criterion == 'best' else f'{a.tag}_{a.criterion}'
-    lines = [f'# RL binning, level 3, test slides (129), run {a.tag}, checkpoint by {a.criterion}', '',
+    lines = [f'# RL binning, level {level}, state {state}, test slides (129), run {a.tag}, checkpoint by {a.criterion}', '',
              'Dice over 512 px sub-patches; untouched tiles are negative. Columns after zoom frac: fraction of each',
              'bucket the method zoomed (boundary, small, core, normal), then the fraction it marked core.', '',
              '| method | Dice all | Dice tumour | normal slides clean | zoom frac | z-bnd | z-small | z-core | z-normal | c-bnd | c-small | c-core | c-normal |',

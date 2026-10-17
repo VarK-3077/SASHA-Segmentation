@@ -3,7 +3,9 @@
 import os
 
 ROOT = '/data2/venkatavks/rlbin'
-CACHE = f'{ROOT}/cache'
+CACHE = f'{ROOT}/cache'          # level-3 tiles, ViT-S embeddings, 16 sub-patches
+CACHE_L2 = f'{ROOT}/cache_l2'    # level-2 tiles, Kaiko ViT-L embeddings, 4 sub-patches
+TILE_STEP = {3: 2048, 2: 1024}
 CKPT = f'{ROOT}/ckpt'
 PBUCKET = f'{ROOT}/pbucket'   # predicted bucket probabilities per slide, from bucket_head.py
 HEADS = '/data2/venkatavks/stop/heads.pt'   # low-res / high-res scorers from the stopping study

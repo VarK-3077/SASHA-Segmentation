@@ -26,4 +26,25 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 
 ## Timeline
 
-- 01:35 wrote `extract_l2.py`; launching on cuda:1, 24 workers.
+- 01:35 wrote `extract_l2.py`; launched on cuda:1, 24 workers. Log `/data2/venkatavks/rlbin/extract_l2.log`.
+  Throughput 390 crops/s (no contention this time), so ~1 h for 1.26 M crops.
+- 01:50 state features: `--state none|pred|oracle` adds 4 per-tile dims (zeros / predicted bucket
+  probs / one-hot GT bucket). Side effect: the policy input grew from 388 to 392, so the l3/l3b/l3c
+  checkpoints no longer load with the new code; their reports are already written.
+- 01:55 `bucket_head.py` (ViT-S L3 embedding -> 4 buckets, balanced CE): val macro-recall 0.654,
+  test recall normal 0.77 / core 0.75 / boundary 0.43 / small 0.62. Probabilities under
+  `/data2/venkatavks/rlbin/pbucket/`. Written beside the cache, not into it, so the running
+  extraction never reads a half-written cache file.
+- 02:00 launched five L3 runs on cuda:0, config = l3c (lr 1e-4, ent 0.02, 16 episodes, balanced):
+  `l3_oracle` (--state oracle), `l3_pred` (--state pred), `l3c_s1/s2/s3` (--state none, seeds 1-3).
+  Each is followed by evaluate with criterion balanced and best. Logs `run_<tag>.log`,
+  args `args_<tag>.json` in `/data2/venkatavks/rlbin/`.
+  MISTAKE: the first launcher loop had no `&`, so only `l3_oracle` started and the loop sat
+  waiting on it. Killed the loop (pid 2456260, the oracle job itself was setsid'd and survived),
+  relaunched the other four at 02:10. Consequence: l3_oracle started ~10 min before the others
+  and was launched from code commit a7cef54; its evaluate step imports the current code, which
+  loads a7cef54 checkpoints unchanged (same layer shapes).
+- 02:05 `cache_l2.py` written: regroups the L3 cache's 16 sub-patches into 4 per L2 child
+  (asserted against the sep L2 fractions and coordinates), trains a Kaiko-L -> 4 sub-patch
+  low-res head, writes `/data2/venkatavks/rlbin/cache_l2/`. Policy/env made level-agnostic
+  (embedding dim and sub-patch count read from the cache).

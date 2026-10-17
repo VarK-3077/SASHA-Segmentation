@@ -17,10 +17,11 @@ from experiments.rlbin.policy import Policy
 from experiments.rlbin.ppo import run_episode, update
 
 
-def load_slides(split, device, trusted_only, state='none'):
+def load_slides(split, device, trusted_only, state='none', level=3):
+    cache = P.CACHE if level == 3 else P.CACHE_L2
     out = []
-    for f in sorted(os.listdir(P.CACHE)):
-        c = np.load(os.path.join(P.CACHE, f))
+    for f in sorted(os.listdir(cache)):
+        c = np.load(os.path.join(cache, f))
         if str(c['split']) != split or (trusted_only and not bool(c['trust_normals'])):
             continue
         c = dict(c)
@@ -49,15 +50,16 @@ def main():
     ap.add_argument('--balanced', action='store_true', help='half the episodes on tumour slides')
     ap.add_argument('--state', default='none', choices=('none', 'pred', 'oracle'))
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--level', type=int, default=3, choices=(3, 2))
     ap.add_argument('--tag', default='l3')
     a = ap.parse_args()
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
-    train = load_slides('train', a.device, trusted_only=True, state=a.state)
-    val = load_slides('val', a.device, trusted_only=False, state=a.state)
+    train = load_slides('train', a.device, trusted_only=True, state=a.state, level=a.level)
+    val = load_slides('val', a.device, trusted_only=False, state=a.state, level=a.level)
     json.dump(vars(a), open(os.path.join(P.ROOT, f'args_{a.tag}.json'), 'w'), indent=1)
     print(f'train {len(train)} slides ({sum(s.gt_pos > 0 for s in train)} tumour), val {len(val)}', flush=True)
-    policy = Policy().to(a.device)
+    policy = Policy(d_emb=train[0].d_emb).to(a.device)
     opt = torch.optim.AdamW(policy.parameters(), lr=a.lr, weight_decay=1e-4)
     log = open(os.path.join(P.ROOT, f'train_{a.tag}.jsonl'), 'a')
     best = -1

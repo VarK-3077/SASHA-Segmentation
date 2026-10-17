@@ -10,7 +10,6 @@ from experiments.rlbin import paths as P
 
 UNASSIGNED, ZOOMED, CORE = 0, 1, 2
 N_EXTRA, N_DYN, N_GLOB = 8, 5, 3   # per tile: 4 low-res score stats + 4 bucket dims (zeros / predicted / oracle)
-N_STATIC = 384 + N_EXTRA
 
 
 def entropy(p):
@@ -26,7 +25,8 @@ class Slide:
         probabilities from bucket_head.py), 'oracle' (+ one-hot ground-truth bucket)."""
         p_lr, p_hr, gt = c['p_lr'].astype(np.float32), c['p_hr'].astype(np.float32), c['gt']
         self.name = name
-        self.n = len(gt)
+        self.n, self.n_sub = gt.shape
+        self.d_emb = c['lr'].shape[1]
         self.cap = int(np.floor(P.ZOOM_CAP * self.n))
         self.max_steps = int(np.ceil(P.MAX_STEPS_FRAC * self.n)) + 1
         self.bucket = c['bucket']
@@ -92,7 +92,7 @@ class Env:
             self.zooms += 1
         else:
             self.status[i] = CORE
-            self.inter += self.s.core_inter[i]; self.pos += 16
+            self.inter += self.s.core_inter[i]; self.pos += self.s.n_sub
         self.steps += 1
         new = self.dice(self.inter, self.pos)
         r = new - self.cur

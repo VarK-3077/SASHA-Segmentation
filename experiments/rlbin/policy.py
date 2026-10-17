@@ -19,9 +19,10 @@ def action_mask(status, cap):
 
 
 class Policy(nn.Module):
-    def __init__(self, h=256, e=128):
+    def __init__(self, d_emb=384, h=256, e=128):
         super().__init__()
-        self.proj = nn.Linear(384, e)
+        self.d_emb = d_emb
+        self.proj = nn.Linear(d_emb, e)
         self.patch = nn.Sequential(nn.Linear(e + N_EXTRA + N_DYN + N_GLOB, h), nn.GELU(), nn.Linear(h, h), nn.GELU())
         self.glob = nn.Sequential(nn.Linear(2 * h + N_GLOB, e), nn.GELU())
         self.act = nn.Sequential(nn.Linear(h + e, h), nn.GELU(), nn.Linear(h, 2))
@@ -30,9 +31,9 @@ class Policy(nn.Module):
 
     def forward(self, static, dyn, glob):
         lead = static.shape[:-1]
-        emb = self.proj(static[..., :384])
+        emb = self.proj(static[..., :self.d_emb])
         g_b = glob.unsqueeze(-2).expand(*lead, N_GLOB)
-        h = self.patch(torch.cat([emb, static[..., 384:], dyn, g_b], -1))
+        h = self.patch(torch.cat([emb, static[..., self.d_emb:], dyn, g_b], -1))
         g = self.glob(torch.cat([h.mean(-2), h.amax(-2), glob], -1))
         g_b = g.unsqueeze(-2).expand(*lead, g.shape[-1])
         a = self.act(torch.cat([h, g_b], -1))
