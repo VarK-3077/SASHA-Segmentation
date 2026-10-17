@@ -115,5 +115,15 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 03:36 BC at level 2, 6 epochs (10 s each): val tumour Dice oracle 0.669, pred 0.759, none
   0.763, mostly by marking cores (zoom 0.00-0.01). Loss still falling at epoch 6 at this size,
   so re-run with 20 epochs before using the checkpoints as PPO warm starts.
-- 03:40 three level-2 PPO runs from the 20-epoch BC checkpoints launched on cuda:0:
+- 03:38 three level-2 PPO runs from the 20-epoch BC checkpoints launched on cuda:0:
   `l2_bc_oracle`, `l2_bc_pred`, `l2_bc_none` (8 episodes/update, 200 updates, l3c config).
+  20-epoch BC val tumour Dice: oracle 0.819 (boundary 0.96 / small 1.00 zoomed), pred 0.712,
+  none 0.741.
+- 04:00 PPO at lr 1e-4 / entropy 0.02 moves away from the BC warm starts: `l3_bc_oracle` val
+  tumour 0.745 at init -> 0.547 at update 250 with boundary zoom 0.14; `l3_bc_none` collapsed
+  to 0.30; `l2_bc_oracle` collapsed to marking everything core by update 10. Likely causes:
+  the entropy bonus (0.02 over a 2N+1 action space) penalises the near-deterministic cloned
+  policy, and lr 1e-4 is 10x SASHA's. The balanced checkpoint pick will therefore fall on an
+  early update, which makes those rows effectively a test of the BC policy itself.
+  `rjob_ft.sh` queued: the same three L3 runs fine-tuned at lr 1e-5 / entropy 0.001 (SASHA's
+  values), tags `l3_ft_*`, starting when GPU 1 drops below 12 GB used.
