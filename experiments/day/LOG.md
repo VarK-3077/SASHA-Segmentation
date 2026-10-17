@@ -161,7 +161,7 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 04:59 `rjob_ft2.sh` (generic clone-then-fine-tune): L3 lr-mode chain on cuda:1 cloned the three
   state variants (val tumour after BC: oracle 0.733, pred 0.606, none 0.570) and launched
   `l3lr_ft_{oracle,pred,none}` at 05:00. MISTAKE: the L2 chain was started in the same ssh
-  command after a `setsid` that did not fork, so it never ran; relaunched on its own at 05:02
+  command after a `setsid` that did not fork, so it never ran; relaunched on its own at 05:00
   (`run_ft2_l2.log`); it reuses the existing `bc_l2_*` checkpoints and waits for GPU 0 to
   drop below 14 GB (the three `l2_bc_*` runs are still there).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
