@@ -5,6 +5,7 @@ import os
 ROOT = '/data2/venkatavks/rlbin'
 CACHE = f'{ROOT}/cache'
 CKPT = f'{ROOT}/ckpt'
+PBUCKET = f'{ROOT}/pbucket'   # predicted bucket probabilities per slide, from bucket_head.py
 HEADS = '/data2/venkatavks/stop/heads.pt'   # low-res / high-res scorers from the stopping study
 
 ZOOM_CAP = 0.5        # at most this fraction of a slide's tiles may be zoomed

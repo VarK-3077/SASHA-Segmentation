@@ -6,7 +6,7 @@
 import torch
 import torch.nn as nn
 
-from experiments.rlbin.env import N_DYN, N_GLOB, UNASSIGNED, ZOOMED
+from experiments.rlbin.env import N_DYN, N_EXTRA, N_GLOB, UNASSIGNED, ZOOMED
 
 
 def action_mask(status, cap):
@@ -22,7 +22,7 @@ class Policy(nn.Module):
     def __init__(self, h=256, e=128):
         super().__init__()
         self.proj = nn.Linear(384, e)
-        self.patch = nn.Sequential(nn.Linear(e + 4 + N_DYN + N_GLOB, h), nn.GELU(), nn.Linear(h, h), nn.GELU())
+        self.patch = nn.Sequential(nn.Linear(e + N_EXTRA + N_DYN + N_GLOB, h), nn.GELU(), nn.Linear(h, h), nn.GELU())
         self.glob = nn.Sequential(nn.Linear(2 * h + N_GLOB, e), nn.GELU())
         self.act = nn.Sequential(nn.Linear(h + e, h), nn.GELU(), nn.Linear(h, 2))
         self.stop = nn.Linear(e, 1)

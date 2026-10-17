@@ -35,7 +35,9 @@ def main():
                     help="'best' = the saved best-val-Dice checkpoint; 'balanced' = the eval checkpoint maximising "
                          "0.5*val tumour Dice + 0.5*val normal-slides-clean")
     a = ap.parse_args()
-    test = load_slides('test', a.device, trusted_only=False)
+    args_path = os.path.join(P.ROOT, f'args_{a.tag}.json')
+    state = json.load(open(args_path))['state'] if os.path.exists(args_path) else 'none'
+    test = load_slides('test', a.device, trusted_only=False, state=state)
     policy = Policy().to(a.device)
     ckpt = os.path.join(P.CKPT, f'best_{a.tag}.pt')
     if a.criterion == 'balanced':
@@ -46,7 +48,7 @@ def main():
     policy.load_state_dict(torch.load(ckpt, map_location=a.device))
     policy.eval()
     agent, rows = evaluate(policy, test, a.device)
-    results = {'agent': agent, 'checkpoint': ckpt}
+    results = {'agent': agent, 'checkpoint': ckpt, 'state': state}
     tag_out = a.tag if a.criterion == 'best' else f'{a.tag}_{a.criterion}'
     lines = [f'# RL binning, level 3, test slides (129), run {a.tag}, checkpoint by {a.criterion}', '',
              'Dice over 512 px sub-patches; untouched tiles are negative. Columns after zoom frac: fraction of each',

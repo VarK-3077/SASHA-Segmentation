@@ -17,13 +17,16 @@ from experiments.rlbin.policy import Policy
 from experiments.rlbin.ppo import run_episode, update
 
 
-def load_slides(split, device, trusted_only):
+def load_slides(split, device, trusted_only, state='none'):
     out = []
     for f in sorted(os.listdir(P.CACHE)):
         c = np.load(os.path.join(P.CACHE, f))
         if str(c['split']) != split or (trusted_only and not bool(c['trust_normals'])):
             continue
-        out.append(Slide(f[:-4], c, device))
+        c = dict(c)
+        if state == 'pred':
+            c['p_bucket'] = np.load(os.path.join(P.PBUCKET, f[:-4] + '.npy'))
+        out.append(Slide(f[:-4], c, device, state))
     return out
 
 
@@ -44,12 +47,15 @@ def main():
     ap.add_argument('--lr', type=float, default=3e-4)
     ap.add_argument('--ent', type=float, default=0.01)
     ap.add_argument('--balanced', action='store_true', help='half the episodes on tumour slides')
+    ap.add_argument('--state', default='none', choices=('none', 'pred', 'oracle'))
+    ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--tag', default='l3')
     a = ap.parse_args()
-    torch.manual_seed(0)
-    rng = np.random.default_rng(0)
-    train = load_slides('train', a.device, trusted_only=True)
-    val = load_slides('val', a.device, trusted_only=False)
+    torch.manual_seed(a.seed)
+    rng = np.random.default_rng(a.seed)
+    train = load_slides('train', a.device, trusted_only=True, state=a.state)
+    val = load_slides('val', a.device, trusted_only=False, state=a.state)
+    json.dump(vars(a), open(os.path.join(P.ROOT, f'args_{a.tag}.json'), 'w'), indent=1)
     print(f'train {len(train)} slides ({sum(s.gt_pos > 0 for s in train)} tumour), val {len(val)}', flush=True)
     policy = Policy().to(a.device)
     opt = torch.optim.AdamW(policy.parameters(), lr=a.lr, weight_decay=1e-4)

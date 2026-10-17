@@ -9,7 +9,8 @@ import torch
 from experiments.rlbin import paths as P
 
 UNASSIGNED, ZOOMED, CORE = 0, 1, 2
-N_STATIC, N_DYN, N_GLOB = 384 + 4, 5, 3
+N_EXTRA, N_DYN, N_GLOB = 8, 5, 3   # per tile: 4 low-res score stats + 4 bucket dims (zeros / predicted / oracle)
+N_STATIC = 384 + N_EXTRA
 
 
 def entropy(p):
@@ -20,7 +21,9 @@ def entropy(p):
 class Slide:
     """Static, per-slide tensors shared by the environment and the policy."""
 
-    def __init__(self, name, c, device):
+    def __init__(self, name, c, device, state='none'):
+        """state: 'none' (embedding + low-res score stats), 'pred' (+ predicted bucket
+        probabilities from bucket_head.py), 'oracle' (+ one-hot ground-truth bucket)."""
         p_lr, p_hr, gt = c['p_lr'].astype(np.float32), c['p_hr'].astype(np.float32), c['gt']
         self.name = name
         self.n = len(gt)
@@ -33,8 +36,14 @@ class Slide:
         self.hr_pos = hr_pred.sum(1)
         self.core_inter = gt.sum(1)
         self.gt_pos = int(gt.sum())
+        if state == 'oracle':
+            bucket_feat = np.eye(4, dtype=np.float32)[c['bucket'].astype(np.int64)]
+        elif state == 'pred':
+            bucket_feat = c['p_bucket'].astype(np.float32)
+        else:
+            bucket_feat = np.zeros((self.n, 4), np.float32)
         static = np.concatenate([c['lr'].astype(np.float32),
-                                 np.stack([p_lr.mean(1), p_lr.max(1), entropy(p_lr), c['nbr_p']], 1)], 1)
+                                 np.stack([p_lr.mean(1), p_lr.max(1), entropy(p_lr), c['nbr_p']], 1), bucket_feat], 1)
         self.static = torch.tensor(static, device=device)
         self.hr_stats = torch.tensor(np.stack([p_hr.mean(1), p_hr.max(1)], 1), device=device)
         self.device = device
