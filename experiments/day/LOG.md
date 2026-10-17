@@ -89,18 +89,18 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   checkpoints removed first, so the balanced checkpoint pick cannot read stale rows. The five
   L3 runs on cuda:0 were untouched (they imported the old ppo.py before the fix and run fine
   at level-3 sizes).
-- 03:20 `l3_oracle` test (balanced pick = update 480, val tumour 0.812 / clean 1.000): Dice all
+- 03:19 `l3_oracle` test (balanced pick = update 480, val tumour 0.812 / clean 1.000): Dice all
   0.859, tumour 0.678, normal clean 0.953, zoom 0.033; boundary zoomed 0.37, small zoomed 0.42,
   core marked 0.71. Oracle routing: 0.916 / 0.776 / 0.988 at zoom 0.02. Reading: with the
   ground-truth bucket in the state the agent gains +0.11 tumour Dice over the plain runs
   (0.565) but still zooms under half of the boundary/small tiles, so the remaining 0.10 to the
   lookup policy is optimisation, not perception. Val-to-test gap on tumour Dice (0.81 -> 0.68)
   is large: 9 val tumour slides.
-- 03:35 `bc.py`: behaviour cloning from the oracle routing (states along random oracle
+- 03:20 `bc.py`: behaviour cloning from the oracle routing (states along random oracle
   roll-outs, loss = -log of the policy mass on the allowed set), 6 epochs, ~20 s each. Val after
   BC: state oracle Dice-all 0.908 / tumour 0.745 / zoom 0.03 (boundary 0.98, small 1.00 zoomed,
   but core marked only 0.03: it stops before marking cores, PPO must fix that); state pred
   0.817 / 0.602; state none 0.809 / 0.581. Checkpoints `ckpt/bc_l3_{oracle,pred,none}.pt`,
   logs `bc_l3_*.log`.
-- 03:40 launched `l3_bc_oracle`, `l3_bc_pred`, `l3_bc_none` on cuda:1 (l3c config, `--init`
+- 03:21 launched `l3_bc_oracle`, `l3_bc_pred`, `l3_bc_none` on cuda:1 (l3c config, `--init`
   from the BC checkpoints) next to the two L2 runs; GPU 1 memory 10 GB + 3 x ~6 GB.
