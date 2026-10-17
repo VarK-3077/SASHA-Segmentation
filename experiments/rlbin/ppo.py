@@ -44,7 +44,7 @@ def gae(rewards, values):
     return adv, adv + values.astype(np.float32)
 
 
-def update(policy, opt, episodes, device, epochs=4, chunk=96):
+def update(policy, opt, episodes, device, epochs=4, chunk=96, ent=ENT):
     """episodes: list of (slide, rec). Returns mean loss parts."""
     all_adv = np.concatenate([r['adv'] for _, r in episodes])
     mu, sd = all_adv.mean(), all_adv.std() + 1e-8
@@ -64,10 +64,10 @@ def update(policy, opt, episodes, device, epochs=4, chunk=96):
             adv = torch.tensor((r['adv'][sl] - mu) / sd, device=device)
             pl = -torch.min(ratio * adv, torch.clamp(ratio, 1 - CLIP, 1 + CLIP) * adv).mean()
             vl = torch.nn.functional.mse_loss(v, torch.tensor(r['ret'][sl], device=device))
-            ent = dist.entropy().mean()
-            loss = pl + VCOEF * vl - ENT * ent
+            entropy = dist.entropy().mean()
+            loss = pl + VCOEF * vl - ent * entropy
             opt.zero_grad(); loss.backward()
             torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
             opt.step()
-            stats.append((pl.item(), vl.item(), ent.item()))
+            stats.append((pl.item(), vl.item(), entropy.item()))
     return dict(zip(('policy_loss', 'value_loss', 'entropy'), np.mean(stats, 0).tolist()))

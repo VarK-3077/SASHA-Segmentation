@@ -42,6 +42,8 @@ def main():
     ap.add_argument('--episodes', type=int, default=8)
     ap.add_argument('--eval_every', type=int, default=10)
     ap.add_argument('--lr', type=float, default=3e-4)
+    ap.add_argument('--ent', type=float, default=0.01)
+    ap.add_argument('--balanced', action='store_true', help='half the episodes on tumour slides')
     ap.add_argument('--tag', default='l3')
     a = ap.parse_args()
     torch.manual_seed(0)
@@ -53,13 +55,19 @@ def main():
     opt = torch.optim.AdamW(policy.parameters(), lr=a.lr, weight_decay=1e-4)
     log = open(os.path.join(P.ROOT, f'train_{a.tag}.jsonl'), 'a')
     best = -1
+    tumour = [s for s in train if s.gt_pos > 0]
+    normal = [s for s in train if s.gt_pos == 0]
     for u in range(a.updates):
         t0 = time.time()
+        if a.balanced:
+            picks = list(rng.choice(tumour, a.episodes // 2, replace=False)) + list(rng.choice(normal, a.episodes - a.episodes // 2, replace=False))
+        else:
+            picks = rng.choice(train, a.episodes, replace=False)
         episodes = []
-        for s in rng.choice(train, a.episodes, replace=False):
+        for s in picks:
             rec, env = run_episode(policy, s, a.device)
             episodes.append((s, rec))
-        stats = update(policy, opt, episodes, a.device)
+        stats = update(policy, opt, episodes, a.device, ent=a.ent)
         stats.update(update=u, ret=float(np.mean([r['reward'].sum() for _, r in episodes])),
                      dice=float(np.mean([final_dice(s, r) for s, r in episodes])),
                      zoom_frac=float(np.mean([(r['final_status'] == 1).mean() for _, r in episodes])),
