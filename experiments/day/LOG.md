@@ -110,3 +110,10 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   l3c_s3 0.808 / 0.527 / 0.953 / 0.05; with l3c (seed 0) 0.828 / 0.565: plain state over four
   seeds = tumour 0.578 ± 0.034, all 0.825 ± 0.017. Predicted buckets +0.05 tumour Dice (about
   1.4 sd), ground-truth buckets +0.10. Boundary zoom rate stays 0.25-0.37 in every run.
+- 03:35 level-2 bucket head (Kaiko-L 1024-d -> 4 buckets): val macro-recall 0.666, test recall
+  normal 0.96 / core 0.76 / boundary 0.62 / small 0.40; probabilities under `pbucket_l2/`.
+- 03:36 BC at level 2, 6 epochs (10 s each): val tumour Dice oracle 0.669, pred 0.759, none
+  0.763, mostly by marking cores (zoom 0.00-0.01). Loss still falling at epoch 6 at this size,
+  so re-run with 20 epochs before using the checkpoints as PPO warm starts.
+- 03:40 three level-2 PPO runs from the 20-epoch BC checkpoints launched on cuda:0:
+  `l2_bc_oracle`, `l2_bc_pred`, `l2_bc_none` (8 episodes/update, 200 updates, l3c config).
