@@ -74,3 +74,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   backbone size (+0.15 S->g); training tricks, context, TTA ≤ +0.02; Macenko stain −0.08;
   light fine-tuning does not beat frozen tokens. Its 90 GB of token h5s under
   `/data2/venkatavks/small/feats/` are deletable if space gets tight.
+- 02:12 extraction finished (1.26 M crops, 477 crops/s). `cache_l2.py` ran clean: both
+  alignment asserts (child sub-patch fractions average to the L2 fraction; child coordinates
+  equal the sep L2 coordinates) passed on all 383 slides. Kaiko-L -> 4 sub-patch low-res head:
+  best val BCE 0.0260 at epoch 3 (ViT-S L3 head was 0.0335 on 16 sub-patches; not the same
+  granularity, so only roughly comparable).
+- 02:14 `l2_none` and `l2_oracle` launched on cuda:1 by the chain.
