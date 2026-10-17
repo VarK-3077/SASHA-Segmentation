@@ -138,11 +138,15 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   Decision: add an environment mode where untouched tiles keep the low-res mask and the agent
   has an explicit normal action to suppress it (zoom / core / normal / stop), which is the
   deployment semantics and the action space originally asked for. Existing mode kept as is.
-- 04:55 `--mode lr` implemented (env, policy with 3 per-tile actions, metrics, baselines, BC,
+- 04:36 `--mode lr` implemented (env, policy with 3 per-tile actions, metrics, baselines, BC,
   frontier). Status one-hot width depends on the mode so every 'neg' checkpoint, including the
   ones still training, loads unchanged with the new code. Smoke test (2 updates) and an
   end-to-end evaluate pass at L3 in lr mode. Baselines in lr mode at L3: low-res mask only
   0.688 / 0.314, supervised router at zoom 0.10: 0.742 / 0.631, oracle routing (now also
   marking normal tiles normal) 0.916 / 0.776.
-- 04:57 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
+- 04:22 `rjob_ft.sh` fired: GPU 1 dropped below 12 GB when the two L2 chain runs ended, so the
+  three `l3_ft_*` fine-tunes started while the three `l3_bc_*` runs were still training there
+  (six processes on cuda:1, no OOM so far). Not what the gate was meant to wait for; harmless
+  apart from slower updates.
+- 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
