@@ -51,6 +51,7 @@ def main():
     ap.add_argument('--state', default='none', choices=('none', 'pred', 'oracle'))
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--level', type=int, default=3, choices=(3, 2))
+    ap.add_argument('--init', default='', help='checkpoint to start the policy from (e.g. a bc.py warm start)')
     ap.add_argument('--tag', default='l3')
     a = ap.parse_args()
     torch.manual_seed(a.seed)
@@ -60,6 +61,10 @@ def main():
     json.dump(vars(a), open(os.path.join(P.ROOT, f'args_{a.tag}.json'), 'w'), indent=1)
     print(f'train {len(train)} slides ({sum(s.gt_pos > 0 for s in train)} tumour), val {len(val)}', flush=True)
     policy = Policy(d_emb=train[0].d_emb).to(a.device)
+    if a.init:
+        policy.load_state_dict(torch.load(a.init, map_location=a.device))
+        agg0, _ = evaluate(policy, val, a.device)
+        print(f"init from {a.init}: val dice {agg0['dice_all']:.3f} tumour {agg0['dice_tumour']:.3f} zoom {agg0['zoom_frac']:.2f}", flush=True)
     opt = torch.optim.AdamW(policy.parameters(), lr=a.lr, weight_decay=1e-4)
     log = open(os.path.join(P.ROOT, f'train_{a.tag}.jsonl'), 'a')
     best = -1
