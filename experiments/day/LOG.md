@@ -80,3 +80,12 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   best val BCE 0.0260 at epoch 3 (ViT-S L3 head was 0.0335 on 16 sub-patches; not the same
   granularity, so only roughly comparable).
 - 02:14 `l2_none` and `l2_oracle` launched on cuda:1 by the chain.
+- 02:26 MISTAKE: `l2_oracle` died with CUDA out-of-memory in the PPO update (two runs at
+  15-16 GB each on a 32 GB card). Cause: the update replays fixed 96-step chunks, and at level 2
+  a slide has up to 14.7k tiles, so one chunk's activations are ~15x the level-3 size. Fix in
+  `ppo.py`: chunk length = 96,000 // tiles (min 4), so every forward pass sees the same number
+  of tile rows regardless of slide size; `expandable_segments` set for the allocator. Both L2
+  runs killed and restarted from scratch at 02:30 with their old logs, jsonl, args and
+  checkpoints removed first, so the balanced checkpoint pick cannot read stale rows. The five
+  L3 runs on cuda:0 were untouched (they imported the old ppo.py before the fix and run fine
+  at level-3 sizes).

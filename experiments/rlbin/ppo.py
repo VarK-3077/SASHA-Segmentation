@@ -44,16 +44,20 @@ def gae(rewards, values):
     return adv, adv + values.astype(np.float32)
 
 
-def update(policy, opt, episodes, device, epochs=4, chunk=96, ent=ENT):
+ROWS_PER_CHUNK = 96 * 1000   # steps x tiles per forward pass; a 14k-tile slide gets 6-step chunks
+
+
+def update(policy, opt, episodes, device, epochs=4, ent=ENT):
     """episodes: list of (slide, rec). Returns mean loss parts."""
     all_adv = np.concatenate([r['adv'] for _, r in episodes])
     mu, sd = all_adv.mean(), all_adv.std() + 1e-8
     stats, rng = [], np.random.default_rng()
+    chunk_of = lambda s: max(4, ROWS_PER_CHUNK // s.n)
     for _ in range(epochs):
-        pieces = [(s, r, i) for s, r in episodes for i in range(0, len(r['action']), chunk)]
+        pieces = [(s, r, i) for s, r in episodes for i in range(0, len(r['action']), chunk_of(s))]
         rng.shuffle(pieces)
         for s, r, i in pieces:
-            sl = slice(i, i + chunk)
+            sl = slice(i, i + chunk_of(s))
             st = torch.tensor(r['status'][sl], device=device)
             gl = torch.tensor(r['glob'][sl], device=device)
             logits, v = policy(s.static.expand(len(st), -1, -1), s.dyn_features(st), gl)

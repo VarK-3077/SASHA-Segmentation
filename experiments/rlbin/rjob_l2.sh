@@ -3,7 +3,7 @@
 # and low-res head, runs the binning agent at level 2 with plain and oracle-bucket state, then
 # evaluates both and draws the level-2 frontier. Log: /data2/venkatavks/rlbin/run_l2_chain.log
 cd ~/SASHA-Segmentation
-export PYTHONPATH=. OMP_NUM_THREADS=4
+export PYTHONPATH=. OMP_NUM_THREADS=4 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 PY=~/envs/sasha-seg/bin/python
 DEV=${1:-cuda:1}
 R=/data2/venkatavks/rlbin
