@@ -58,3 +58,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   Reading: marking core without zooming is what lifts oracle routing above the GT-order curve
   (0.776 vs 0.53 at 2 %), so the core action is worth a lot at low zoom fractions, and no
   learned run uses it on the right tiles.
+- 01:38 five L3 runs at 10-15 s per update with all five on cuda:0 (29 of 32 GB used, so no
+  sixth process goes there). Expected finish ~03:30.
+- 01:39 `rjob_l2.sh` launched detached on cuda:1: waits for the extraction, runs `cache_l2.py`
+  (asserts on the sub-patch regrouping, trains the Kaiko-L low-res head), then two L2 runs
+  `l2_none` and `l2_oracle` (8 episodes/update, 400 updates, otherwise l3c config), evaluates
+  both, draws `frontier_L2`. Log `/data2/venkatavks/rlbin/run_l2_chain.log`.
