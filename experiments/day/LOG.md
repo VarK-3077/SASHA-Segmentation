@@ -64,3 +64,13 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   (asserts on the sub-patch regrouping, trains the Kaiko-L low-res head), then two L2 runs
   `l2_none` and `l2_oracle` (8 episodes/update, 400 updates, otherwise l3c config), evaluates
   both, draws `frontier_L2`. Log `/data2/venkatavks/rlbin/run_l2_chain.log`.
+- 01:50 small-vs-normal study (agent worktree `agent-a35f15a848390276d`, `experiments/small`,
+  commits 1822911 + 653b13b) reported complete: 36 methods on the same 24,049 normal + 892 small
+  test crops; report `/data2/venkatavks/small/report.md`. Best: Kaiko-L patch tokens of the four
+  level-1 children per 1024 px crop, per-token MLP, max pooling: small recall 0.735 @99 % spec,
+  0.872 @95 %, AUC 0.962 (pooled Kaiko-L baseline 0.576 / 0.725 / 0.917). Levers in order:
+  visible tumour area (sets the floor; <1,000 µm² crops stay at 0.2-0.55 for every method),
+  token-level scoring (+0.07-0.09), finer read of the same footprint (+0.09 with tokens),
+  backbone size (+0.15 S->g); training tricks, context, TTA ≤ +0.02; Macenko stain −0.08;
+  light fine-tuning does not beat frozen tokens. Its 90 GB of token h5s under
+  `/data2/venkatavks/small/feats/` are deletable if space gets tight.
