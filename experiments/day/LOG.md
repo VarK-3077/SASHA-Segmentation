@@ -127,3 +127,14 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   early update, which makes those rows effectively a test of the BC policy itself.
   `rjob_ft.sh` queued: the same three L3 runs fine-tuned at lr 1e-5 / entropy 0.001 (SASHA's
   values), tags `l3_ft_*`, starting when GPU 1 drops below 12 GB used.
+- 04:27 level-2 plain runs scored (balanced pick): `l2_none` 0.822 / 0.479 / clean 1.000 /
+  zoom 0.026; `l2_oracle` 0.780 / 0.400 / 0.976 / 0.023. Both below the L3 plain runs on tumour
+  slides: 4x more candidates, 400 updates of 8 episodes, and the same risk-averse basin.
+  Level-2 baselines on the same scorers: low-res mask only (Kaiko-L head, no zoom) 0.852 all /
+  0.588 tumour; supervised router at zoom 0.03: 0.775 / 0.704; zoom 0.10: 0.772 / 0.719;
+  oracle routing 0.921 / 0.792 at zoom 0.012. `frontier_L2.{json,png}` written by the chain.
+  Reading: the level-2 low-res head alone beats every RL agent so far on tumour slides with
+  zero zooms, and the environment never lets the agent use that mask (untouched = negative).
+  Decision: add an environment mode where untouched tiles keep the low-res mask and the agent
+  has an explicit normal action to suppress it (zoom / core / normal / stop), which is the
+  deployment semantics and the action space originally asked for. Existing mode kept as is.
