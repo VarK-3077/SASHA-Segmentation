@@ -78,7 +78,7 @@ def main():
             if agg['dice_all'] > best:
                 best = agg['dice_all']
                 torch.save(policy.state_dict(), os.path.join(P.CKPT, f'best_{a.tag}.pt'))
-            torch.save(policy.state_dict(), os.path.join(P.CKPT, f'last_{a.tag}.pt'))
+            torch.save(policy.state_dict(), os.path.join(P.CKPT, f'{a.tag}_u{u}.pt'))
             print(f"u{u} ret {stats['ret']:.3f} zoom {stats['zoom_frac']:.2f} steps {stats['steps']:.0f} | "
                   f"val dice {agg['dice_all']:.3f} tumour {agg['dice_tumour']:.3f} zoom {agg['zoom_frac']:.2f} "
                   f"bnd-zoom {agg.get('boundary_zoom', 0):.2f} small-zoom {agg.get('small_zoom', 0):.2f} "

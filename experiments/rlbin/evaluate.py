@@ -31,14 +31,24 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--tag', default='l3')
+    ap.add_argument('--criterion', default='best', choices=('best', 'balanced'),
+                    help="'best' = the saved best-val-Dice checkpoint; 'balanced' = the eval checkpoint maximising "
+                         "0.5*val tumour Dice + 0.5*val normal-slides-clean")
     a = ap.parse_args()
     test = load_slides('test', a.device, trusted_only=False)
     policy = Policy().to(a.device)
-    policy.load_state_dict(torch.load(os.path.join(P.CKPT, f'best_{a.tag}.pt'), map_location=a.device))
+    ckpt = os.path.join(P.CKPT, f'best_{a.tag}.pt')
+    if a.criterion == 'balanced':
+        evals = [json.loads(l) for l in open(os.path.join(P.ROOT, f'train_{a.tag}.jsonl')) if '"val"' in l]
+        pick = max(evals, key=lambda e: 0.5 * (e['val']['dice_tumour'] or 0) + 0.5 * (e['val']['normal_slides_clean'] or 0))
+        ckpt = os.path.join(P.CKPT, f"{a.tag}_u{pick['update']}.pt")
+        print(f"balanced pick: update {pick['update']}, val tumour {pick['val']['dice_tumour']:.3f}, clean {pick['val']['normal_slides_clean']:.3f}")
+    policy.load_state_dict(torch.load(ckpt, map_location=a.device))
     policy.eval()
     agent, rows = evaluate(policy, test, a.device)
-    results = {'agent': agent}
-    lines = ['# RL binning, level 3, test slides (129)', '',
+    results = {'agent': agent, 'checkpoint': ckpt}
+    tag_out = a.tag if a.criterion == 'best' else f'{a.tag}_{a.criterion}'
+    lines = [f'# RL binning, level 3, test slides (129), run {a.tag}, checkpoint by {a.criterion}', '',
              'Dice over 512 px sub-patches; untouched tiles are negative. Columns after zoom frac: fraction of each',
              'bucket the method zoomed (boundary, small, core, normal), then the fraction it marked core.', '',
              '| method | Dice all | Dice tumour | normal slides clean | zoom frac | z-bnd | z-small | z-core | z-normal | c-bnd | c-small | c-core | c-normal |',
@@ -58,8 +68,8 @@ def main():
     lines += [f"| {s.name} | {r['n']} | {int(r['tumour'])} | {r['dice']:.3f} | {r['zoom_frac']:.2f} | {r['steps_frac']:.2f} |"
               for s, r in zip(test, rows)]
     text = '\n'.join(lines)
-    open(os.path.join(P.ROOT, f'report_{a.tag}.md'), 'w').write(text)
-    json.dump(results, open(os.path.join(P.ROOT, f'results_{a.tag}.json'), 'w'), indent=1)
+    open(os.path.join(P.ROOT, f'report_{tag_out}.md'), 'w').write(text)
+    json.dump(results, open(os.path.join(P.ROOT, f'results_{tag_out}.json'), 'w'), indent=1)
     print('\n'.join(lines[:16]))
 
 
