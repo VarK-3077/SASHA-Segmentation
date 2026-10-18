@@ -225,5 +225,8 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 08:50 `frontier_L2_lr` drawn: in lr mode (untouched tiles keep the Kaiko-L low-res mask) the
   supervised router reaches tumour Dice 0.733 at 1 % zoom and 0.735 at 5 %, the best label-free
   tumour number of the day, slightly above the clone-only agent (0.707 ± 0.013 at 1 %).
+- 09:24 `l2_ft_pred` (level 2, BC then gentle PPO, predicted buckets; pick = update 140): 0.853 /
+  0.684 / 0.941 / zoom 0.188; boundary 0.57 / small 0.48 zoomed, core marked 0.66. Fine-tuning
+  from the clone (0.684 at 1 % zoom) bought nothing on tumour slides and cost 18x the zooms.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
