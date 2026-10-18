@@ -192,5 +192,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   training in `l2_bc_pred`). The clone-only level-2 policy is stable across seeds.
 - 06:55 queued `l3_ft_none` PPO seeds 1 and 2 on cuda:1 (same BC checkpoint, different PPO
   seed) for error bars on the 0.660 row.
+- 07:15 `l3lr_ft_oracle` (lr mode, BC then gentle PPO, GT buckets; pick = update 170): 0.887 /
+  0.693 / 0.988 / zoom 0.020; boundary 0.81 / small 0.87 zoomed. Lower on tumour slides than
+  its neg-mode twin (0.751): in lr mode the untouched boundary tiles keep a low-res mask that
+  the agent then has to override, and the clone did not learn to mark enough cores (0.46).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
