@@ -186,5 +186,11 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   0.807 / 0.660 / clean 0.882 / zoom 0.142; boundary 0.75 / small 0.63 zoomed, core zoomed
   0.66. Same pattern as `l3_ft_pred`: +0.08-0.10 tumour Dice over the plain runs, paid with
   more zooms and 12 % of normal slides no longer clean.
+- 06:54 clone-only level-2 seeds (one gentle update, pick = update 0): state none seeds 1/2 ->
+  0.888 / 0.696 and 0.883 / 0.726 (with seed 0: tumour 0.707 ± 0.013, Dice-all 0.887 ± 0.003,
+  zoom 0.7-1.0 %); state pred seeds 1/2 -> 0.870 / 0.641 and 0.894 / 0.713 (seed 0 still
+  training in `l2_bc_pred`). The clone-only level-2 policy is stable across seeds.
+- 06:55 queued `l3_ft_none` PPO seeds 1 and 2 on cuda:1 (same BC checkpoint, different PPO
+  seed) for error bars on the 0.660 row.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
