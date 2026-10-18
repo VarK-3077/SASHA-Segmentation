@@ -199,5 +199,8 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 07:35 `l3lr_ft_pred` (lr mode, BC then gentle PPO, predicted buckets; pick = update 10):
   0.808 / 0.552 / 0.941 / zoom 0.008. In lr mode the fine-tune did not improve on the clone,
   and the row is below the neg-mode twin (0.677).
+- 07:38 `l3lr_ft_none` (lr mode, BC then gentle PPO, embedding-only; pick = update 570):
+  0.826 / 0.625 / 0.929 / zoom 0.042; boundary 0.66 / small 0.35 zoomed. lr-mode fine-tunes
+  land 0.03-0.06 below their neg-mode twins on tumour slides across all three states.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
