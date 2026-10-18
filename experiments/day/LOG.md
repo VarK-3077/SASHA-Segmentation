@@ -214,5 +214,7 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   log / jsonl / args / checkpoint / report, relaunched the L2 chain once (`run_ft2_l2.log`;
   the first attempt's chain log kept as `run_ft2_l2_attempt1.log`). Cost: ~2 h of GPU 0.
   Rule from now on: one chain per ssh command, and tags must never be reused.
+- 08:22 `l3lr_none` (L3, lr mode, plain PPO; pick = update 530): 0.758 / 0.518 / 0.882 / zoom
+  0.009, almost no actions (boundary zoomed 0.08). Below the lr-mode fine-tunes.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
