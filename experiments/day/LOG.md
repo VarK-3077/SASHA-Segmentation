@@ -202,5 +202,17 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 07:38 `l3lr_ft_none` (lr mode, BC then gentle PPO, embedding-only; pick = update 570):
   0.826 / 0.625 / 0.929 / zoom 0.042; boundary 0.66 / small 0.35 zoomed. lr-mode fine-tunes
   land 0.03-0.06 below their neg-mode twins on tumour slides across all three states.
+- 08:05 `l3_ft_none_s2` (PPO seed 2 from the same BC checkpoint; pick = update 230): 0.796 /
+  0.652 / 0.871 / zoom 0.094 (seed 0: 0.807 / 0.660 / 0.882 / 0.142).
+- 08:10 MISTAKE, bigger one: at 04:59 the two chains were started in one ssh command; the first
+  `setsid` did not fork, so the L2 chain was not skipped but queued behind the L3 lr chain. I
+  relaunched the L2 chain by hand at 05:00, and when the L3 lr chain finished (~07:40) the queued
+  copy fired too: a second `rjob_ft2.sh ... 2 neg` passed the memory gate and launched three
+  more `l2_ft_*` trainings with the same tags, truncating the running jobs' logs (binary
+  garbage), interleaving their jsonl rows and overwriting their checkpoints. Nothing from
+  `l2_ft_*` is trustworthy. Action: killed both sets and both chains, deleted every `l2_ft_*`
+  log / jsonl / args / checkpoint / report, relaunched the L2 chain once (`run_ft2_l2.log`;
+  the first attempt's chain log kept as `run_ft2_l2_attempt1.log`). Cost: ~2 h of GPU 0.
+  Rule from now on: one chain per ssh command, and tags must never be reused.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
