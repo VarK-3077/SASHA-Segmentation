@@ -164,5 +164,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   command after a `setsid` that did not fork, so it never ran; relaunched on its own at 05:00
   (`run_ft2_l2.log`); it reuses the existing `bc_l2_*` checkpoints and waits for GPU 0 to
   drop below 14 GB (the three `l2_bc_*` runs are still there).
+- 05:42 `l2_bc_none` scored (balanced pick = update 10, i.e. essentially the 20-epoch BC policy
+  on Kaiko-L level-2 embeddings, no bucket labels in the state): 0.889 / 0.699 / clean 0.988 /
+  zoom 0.010; boundary zoomed 0.44, small 0.18, core marked 0.39. Best label-free tumour Dice so
+  far, at 1 % of tiles zoomed (plain L3 runs: 0.58 at 4-8 %).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
