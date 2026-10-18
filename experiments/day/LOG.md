@@ -222,5 +222,8 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   0.688 / 0.812 / zoom 0.280. The three `l3_ft_none` seeds: tumour 0.667 ± 0.015 but zoom
   0.09-0.28 and normal-clean 0.81-0.88, i.e. the fine-tune's operating point is not stable
   across seeds even when its tumour Dice is.
+- 08:50 `frontier_L2_lr` drawn: in lr mode (untouched tiles keep the Kaiko-L low-res mask) the
+  supervised router reaches tumour Dice 0.733 at 1 % zoom and 0.735 at 5 %, the best label-free
+  tumour number of the day, slightly above the clone-only agent (0.707 ± 0.013 at 1 %).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
