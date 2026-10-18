@@ -172,5 +172,12 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   the state): 0.899 / 0.726 / 0.988 / zoom 0.016; boundary 0.94 / small 0.86 zoomed, core
   marked 0.52. The L2 fine-tune chain fired at 05:45 (GPU 0 under 14 GB); `l2_ft_*` at update
   80 of 200 by 06:02.
+- 06:33 `l2lr_none` (L2, lr mode, plain PPO) scored: the balanced pick (update 40) takes no
+  action at all, so the row equals the low-res mask alone: 0.852 / 0.588 / 0.988 / zoom 0.
+  In lr mode the plain agent learns that the default mask is hard to improve on without risk.
+  `l3_ft_pred` (BC then gentle PPO, predicted buckets, neg mode; pick = update 410): 0.797 /
+  0.677 / clean 0.859 / zoom 0.051; boundary 0.66 / small 0.37 zoomed, core zoomed 0.64.
+  Tumour Dice +0.10 over the plain runs, but 14 % of normal slides now carry false positives,
+  so Dice-all is lower (0.797 vs 0.83).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
