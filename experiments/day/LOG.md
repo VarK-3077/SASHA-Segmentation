@@ -228,5 +228,11 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 09:24 `l2_ft_pred` (level 2, BC then gentle PPO, predicted buckets; pick = update 140): 0.853 /
   0.684 / 0.941 / zoom 0.188; boundary 0.57 / small 0.48 zoomed, core marked 0.66. Fine-tuning
   from the clone (0.684 at 1 % zoom) bought nothing on tumour slides and cost 18x the zooms.
+- 09:27 `l2_ft_none` (level 2, BC then gentle PPO, embedding only; pick = update 80): 0.897 /
+  0.720 / 0.988 / zoom 0.052; boundary 0.72 / small 0.68 zoomed, core marked 0.39. Best
+  label-free agent of the day.
+- 09:30 all 30 runs finished. Regenerated `summary.md` and the four frontier plots
+  (`frontier_L3`, `frontier_L3_lr`, `frontier_L2`, `frontier_L2_lr`) with every run as a point;
+  `RESULTS.md` written. GPUs idle. Nothing left running from this window.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
