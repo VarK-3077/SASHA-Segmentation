@@ -168,5 +168,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   on Kaiko-L level-2 embeddings, no bucket labels in the state): 0.889 / 0.699 / clean 0.988 /
   zoom 0.010; boundary zoomed 0.44, small 0.18, core marked 0.39. Best label-free tumour Dice so
   far, at 1 % of tiles zoomed (plain L3 runs: 0.58 at 4-8 %).
+- 06:02 `l2_bc_oracle` scored (pick = update 0, i.e. the BC policy with ground-truth buckets in
+  the state): 0.899 / 0.726 / 0.988 / zoom 0.016; boundary 0.94 / small 0.86 zoomed, core
+  marked 0.52. The L2 fine-tune chain fired at 05:45 (GPU 0 under 14 GB); `l2_ft_*` at update
+  80 of 200 by 06:02.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
