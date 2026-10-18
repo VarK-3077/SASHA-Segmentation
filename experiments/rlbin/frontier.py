@@ -63,13 +63,20 @@ def main():
         print(kind, {f: round(v['dice_tumour'], 3) for f, v in c.items()}, flush=True)
     orc = aggregate([episode_metrics(s, baseline_status(s, 'oracle_route'), 0) for s in test])
     out['points']['oracle routing'] = {'zoom_frac': orc['zoom_frac'], 'dice_all': orc['dice_all'], 'dice_tumour': orc['dice_tumour']}
+    # one point per run: the balanced-criterion result when it exists, else the best-val one; no smoke tests
+    results = {}
     for f in sorted(glob.glob(os.path.join(P.ROOT, 'results_*.json'))):
-        r = json.load(open(f))
+        tag = os.path.basename(f)[8:-5]
+        if 'smoke' in tag:
+            continue
+        base = tag[:-9] if tag.endswith('_balanced') else tag
+        if base not in results or tag.endswith('_balanced'):
+            results[base] = json.load(open(f))
+    for base, r in results.items():
         if r.get('level', 3) != a.level or r.get('mode', 'neg') != a.mode:
             continue
-        tag = os.path.basename(f)[8:-5]
-        out['points'][f'RL {tag}'] = {'zoom_frac': r['agent']['zoom_frac'], 'dice_all': r['agent']['dice_all'],
-                                      'dice_tumour': r['agent']['dice_tumour']}
+        out['points'][f'RL {base}'] = {'zoom_frac': r['agent']['zoom_frac'], 'dice_all': r['agent']['dice_all'],
+                                       'dice_tumour': r['agent']['dice_tumour']}
     suffix = f'L{a.level}' + ('' if a.mode == 'neg' else '_lr')
     json.dump(out, open(os.path.join(P.ROOT, f'frontier_{suffix}.json'), 'w'), indent=1)
     plot(out, suffix)
