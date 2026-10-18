@@ -196,5 +196,8 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   0.693 / 0.988 / zoom 0.020; boundary 0.81 / small 0.87 zoomed. Lower on tumour slides than
   its neg-mode twin (0.751): in lr mode the untouched boundary tiles keep a low-res mask that
   the agent then has to override, and the clone did not learn to mark enough cores (0.46).
+- 07:35 `l3lr_ft_pred` (lr mode, BC then gentle PPO, predicted buckets; pick = update 10):
+  0.808 / 0.552 / 0.941 / zoom 0.008. In lr mode the fine-tune did not improve on the clone,
+  and the row is below the neg-mode twin (0.677).
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
