@@ -216,5 +216,11 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   Rule from now on: one chain per ssh command, and tags must never be reused.
 - 08:22 `l3lr_none` (L3, lr mode, plain PPO; pick = update 530): 0.758 / 0.518 / 0.882 / zoom
   0.009, almost no actions (boundary zoomed 0.08). Below the lr-mode fine-tunes.
+- 08:43 `l2_ft_oracle` (level 2, BC then gentle PPO, GT buckets; pick = update 170): 0.899 /
+  0.749 / 0.976 / zoom 0.051; boundary 0.96 / small 0.95 zoomed, core marked 0.53 (oracle
+  routing at L2: 0.921 / 0.792 / 0.988 / 0.012). `l3_ft_none_s1` (pick = update 260): 0.770 /
+  0.688 / 0.812 / zoom 0.280. The three `l3_ft_none` seeds: tumour 0.667 ± 0.015 but zoom
+  0.09-0.28 and normal-clean 0.81-0.88, i.e. the fine-tune's operating point is not stable
+  across seeds even when its tumour Dice is.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
