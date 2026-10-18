@@ -179,5 +179,8 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   0.677 / clean 0.859 / zoom 0.051; boundary 0.66 / small 0.37 zoomed, core zoomed 0.64.
   Tumour Dice +0.10 over the plain runs, but 14 % of normal slides now carry false positives,
   so Dice-all is lower (0.797 vs 0.83).
+- 06:38 `rjob_bcseeds.sh` on cuda:1: clone-only level-2 policies with seeds 1 and 2 for states
+  none and pred, each scored after one gentle PPO update (tags `l2_bcs<seed>_<state>`), to put
+  error bars on the `l2_bc_none` 0.699 row.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
