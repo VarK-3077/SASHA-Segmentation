@@ -53,6 +53,7 @@ def main():
     ap.add_argument('--level', type=int, default=3, choices=(3, 2))
     ap.add_argument('--init', default='', help='checkpoint to start the policy from (e.g. a bc.py warm start)')
     ap.add_argument('--mode', default='neg', choices=('neg', 'lr'), help='what an untouched tile means at the end')
+    ap.add_argument('--zoom_cost', type=float, default=0.0, help='Dice units charged per zoom in the training reward')
     ap.add_argument('--tag', default='l3')
     a = ap.parse_args()
     torch.manual_seed(a.seed)
@@ -79,7 +80,7 @@ def main():
             picks = rng.choice(train, a.episodes, replace=False)
         episodes = []
         for s in picks:
-            rec, env = run_episode(policy, s, a.device)
+            rec, env = run_episode(policy, s, a.device, zoom_cost=a.zoom_cost)
             episodes.append((s, rec))
         stats = update(policy, opt, episodes, a.device, ent=a.ent)
         stats.update(update=u, ret=float(np.mean([r['reward'].sum() for _, r in episodes])),

@@ -10,8 +10,8 @@ from experiments.rlbin.policy import action_mask
 GAMMA, LAM, CLIP, ENT, VCOEF = 1.0, 0.95, 0.2, 0.01, 0.5
 
 
-def run_episode(policy, slide, device, deterministic=False):
-    env = Env(slide)
+def run_episode(policy, slide, device, deterministic=False, zoom_cost=0.0):
+    env = Env(slide, zoom_cost)
     status, glob = env.reset()
     rec = {k: [] for k in ('status', 'glob', 'action', 'logp', 'value', 'reward')}
     while not env.done:

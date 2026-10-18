@@ -64,8 +64,10 @@ class Slide:
 
 
 class Env:
-    def __init__(self, slide):
+    def __init__(self, slide, zoom_cost=0.0):
+        """zoom_cost: Dice units charged per zoom (0 = free reads, the default everywhere else)."""
         self.s = slide
+        self.zoom_cost = zoom_cost
 
     def dice(self, inter, pos):
         d = pos + self.s.gt_pos
@@ -106,7 +108,7 @@ class Env:
             self.status[i] = NORMAL
         self.steps += 1
         new = self.dice(self.inter, self.pos)
-        r = new - self.cur
+        r = new - self.cur - (self.zoom_cost if kind == 0 else 0.0)
         self.cur = new
         if self.steps >= self.s.max_steps or not (self.status == UNASSIGNED).any():
             self.done = True

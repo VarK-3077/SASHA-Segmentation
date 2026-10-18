@@ -237,5 +237,13 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 09:33 launched `l2_ft_none_s1` (cuda:0) and `l2_ft_none_s2` (cuda:1): PPO seeds 1 and 2 of the
   best label-free agent, each from its own clone (`bc_l2_bcs<seed>_none.pt`), for error bars on
   the 0.720 row. ~1.5 h each; results land in `report_l2_ft_none_s<seed>_balanced.md`.
+- 20:49 seed repeats of `l2_ft_none`: s1 0.899 / 0.728 / 0.988 / zoom 0.066; s2 0.798 /
+  0.635 / 0.882 / zoom 0.172. Three seeds: tumour 0.694 ± 0.042, zoom 0.05-0.17. The gentle
+  fine-tune is less stable than the clone it starts from (0.707 ± 0.013 at 1 %): when it
+  drifts, it drifts toward more zooms and normal-slide false positives.
+- 20:55 last experiment of the window: the same recipe with a per-zoom cost of 1e-4 Dice in
+  the training reward (`--zoom_cost`, the value where the oracle stop curve had its knee),
+  seeds 0 and 1 (`l2_ftc_none_s0` on cuda:0, `l2_ftc_none_s1` on cuda:1), to see whether a
+  read cost removes the drift. ~1.5 h.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
