@@ -234,5 +234,8 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
 - 09:30 all 30 runs finished. Regenerated `summary.md` and the four frontier plots
   (`frontier_L3`, `frontier_L3_lr`, `frontier_L2`, `frontier_L2_lr`) with every run as a point;
   `RESULTS.md` written. GPUs idle. Nothing left running from this window.
+- 09:33 launched `l2_ft_none_s1` (cuda:0) and `l2_ft_none_s2` (cuda:1): PPO seeds 1 and 2 of the
+  best label-free agent, each from its own clone (`bc_l2_bcs<seed>_none.pt`), for error bars on
+  the 0.720 row. ~1.5 h each; results land in `report_l2_ft_none_s<seed>_balanced.md`.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.
