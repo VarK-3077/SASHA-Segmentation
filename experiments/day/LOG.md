@@ -245,5 +245,9 @@ Code changes are committed to branch `worktree-rlbin` as they are made.
   the training reward (`--zoom_cost`, the value where the oracle stop curve had its knee),
   seeds 0 and 1 (`l2_ftc_none_s0` on cuda:0, `l2_ftc_none_s1` on cuda:1), to see whether a
   read cost removes the drift. ~1.5 h.
+- 2026-10-19 costed runs scored (per-zoom cost 1e-4, clone then gentle PPO, embedding only,
+  level 2): s0 0.898 / 0.745 / 0.976 / zoom 0.027; s1 0.901 / 0.733 / 0.988 / zoom 0.017.
+  Mean tumour 0.739 ± 0.006 at 2 % zoom, both picks at update 70. The read cost removed the
+  drift seen without it (0.694 ± 0.042, zoom up to 0.17). Best label-free result of the window.
 - 04:37 launched `l3lr_none` (L3, lr mode, l3c config, 600 updates) and `l2lr_none` (L2, lr
   mode, 8 episodes, 400 updates) on cuda:0.

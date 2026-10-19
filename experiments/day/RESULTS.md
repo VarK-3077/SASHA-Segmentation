@@ -51,6 +51,7 @@ slides no longer clean.
 | clone only, predicted bucket (3 seeds) | 0.880 | 0.679 ± 0.030 | 0.98 | 0.008 |
 | clone only, ground-truth bucket | 0.899 | 0.726 | 0.988 | 0.016 |
 | clone + PPO lr 1e-5, embedding only (3 seeds) | 0.865 ± 0.047 | 0.694 ± 0.042 | 0.95 | 0.05-0.17 |
+| clone + PPO lr 1e-5 with per-zoom cost 1e-4, embedding only (2 seeds) | 0.900 ± 0.002 | 0.739 ± 0.006 | 0.98 | 0.02-0.03 |
 | clone + PPO lr 1e-5, predicted bucket | 0.853 | 0.684 | 0.941 | 0.188 |
 | clone + PPO lr 1e-5, ground-truth bucket | 0.899 | 0.749 | 0.976 | 0.051 |
 | supervised router in deployment mode (untouched = low-res mask) | 0.800 | 0.733 | - | 0.01 |
@@ -58,7 +59,9 @@ slides no longer clean.
 
 The clone-only level-2 policy is the best label-free result at 1 % of tiles: tumour Dice 0.71,
 normal slides 98 % clean, stable across seeds. Gentle PPO on top of it reaches 0.720 and 0.728 at 5-7 %
-in two seeds but 0.635 at 17 % in a third, so it adds nothing reliable; with predicted buckets it only adds zooms. Plain PPO at level 2 is
+in two seeds but 0.635 at 17 % in a third, so without a read cost it adds nothing reliable; with a per-zoom cost of 1e-4 Dice in the
+reward two seeds give 0.745 and 0.733 at 2-3 % zoom with normal slides 98 % clean, the best
+label-free rows of the window; with predicted buckets it only adds zooms. Plain PPO at level 2 is
 worse than at level 3 (4x more candidates, same budget of updates, same risk-averse basin).
 For tumour slides alone the simple router in deployment mode is as good (0.733 at 1 %), but it
 cannot keep normal slides clean, which is where every agent wins.
