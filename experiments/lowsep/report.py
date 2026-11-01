@@ -55,6 +55,14 @@ def main():
             g = [r['routing'][route] for r in rs]
             L.append(f"| L{lv} | {'context' if ctx else 'no context'} | {ms([x['dice_tumour'] for x in g])} | {ms([x['dice_all'] for x in g])} | "
                      f"{ms([x['normal_clean'] for x in g])} | {ms([x['zoom_frac'] for x in g])} | {ms([x['total_cost'] for x in g])} |")
+    if os.path.exists(f'{P.ROOT}/timing.json'):
+        t = json.load(open(f'{P.ROOT}/timing.json'))
+        L += ['', '## Measured screen time on the test slides (A100, cold page cache per slide, 10 loader workers, run alone)', '',
+              '| level | crops / slide | wall s/slide (mean) | median | tissue mask | loader wait | GPU (ViT + PCA) | head |', '|' + '---|' * 8]
+        for lv, v in sorted(t.items()):
+            m = v['mean']
+            L.append(f"| {lv}{' (reference: full token pass)' if lv == 'L2' else ''} | {m['crops']:.0f} | {m['wall']:.2f} | {v['median_wall']:.2f} | "
+                     f"{m['tissue']:.2f} | {m['wait_io']:.2f} | {m['gpu']:.2f} | {m['head']:.3f} |")
     L += ['', '## Confusion matrices (seed 0; rows true bucket, columns predicted)', '']
     for (lv, ctx), rs in sorted(runs.items()):
         r = sorted(rs, key=lambda x: x['seed'])[0]
