@@ -91,8 +91,12 @@ def main():
     ap.add_argument('--eval_every', type=int, default=300)
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--workers', type=int, default=3)
+    ap.add_argument('--d', type=int, default=256, help='head width')
+    ap.add_argument('--drop', type=float, default=0.1)
+    ap.add_argument('--wd', type=float, default=1e-4)
+    ap.add_argument('--name', default='', help='tag suffix for sweep runs')
     a = ap.parse_args()
-    tag = f'L{a.level}_{"ctx" if a.ctx else "noctx"}_s{a.seed}'
+    tag = f'L{a.level}_{"ctx" if a.ctx else "noctx"}{a.name}_s{a.seed}'
     out = P.run_dir(tag)
     os.makedirs(out, exist_ok=True)
     json.dump(vars(a), open(f'{out}/args.json', 'w'), indent=1)
@@ -100,8 +104,8 @@ def main():
     train, val = names_of('train', a.level), names_of('val', a.level)
     w, counts = class_weights(train, a.level)
     print(f'{tag}: {len(train)} train / {len(val)} val slides, train unit counts {counts.astype(int).tolist()}', flush=True)
-    head = ScreenHead(P.tokens_per_unit(a.level), ctx=bool(a.ctx)).to(a.device)
-    opt = torch.optim.AdamW(head.parameters(), lr=1e-3, weight_decay=1e-4)
+    head = ScreenHead(P.tokens_per_unit(a.level), ctx=bool(a.ctx), d=a.d, p_drop=a.drop).to(a.device)
+    opt = torch.optim.AdamW(head.parameters(), lr=1e-3, weight_decay=a.wd)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=1e-3, total_steps=a.steps, pct_start=0.05)
     loader = iter(DataLoader(Windows(train, a.level, a.seed), batch_size=a.batch, num_workers=a.workers, persistent_workers=True))
     val_maps = [SlideMaps(n, a.level) for n in val]

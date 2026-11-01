@@ -20,6 +20,10 @@ def ms(v):
     return f'{np.mean(v):.3f} ± {np.std(v):.3f}' if len(v) > 1 else (f'{v[0]:.3f}' if v else '-')
 
 
+def head_name(ctx, cfg):
+    return ('context' if ctx else 'no context') + (f' {cfg.strip("_")}' if cfg else '')
+
+
 def screen_seconds(level):
     f = f'{P.tok_dir(level)}/times.json'
     if not os.path.exists(f):
@@ -33,7 +37,7 @@ def main():
     runs = defaultdict(list)
     for f in sorted(glob.glob(f'{P.ROOT}/runs/*/test.json')):
         r = json.load(open(f))
-        runs[(r['level'], r['ctx'])].append(r)
+        runs[(r['level'], r['ctx'], r.get('config', ''))].append(r)
     L = ['# Low-level screen separability', '',
          'Unit = 2048 px level-0 crop, the token-head segmenter input. Screen = frozen Kaiko ViT-L/14 on 256 px crops at',
          'level L (m x m units per crop, m = 2^(L-3)), PCA-256 tokens, trained head. Test = every tissue unit of the 129',
@@ -41,9 +45,9 @@ def main():
          '## Bucket recall (argmax) and AUC vs normal on tumour slides', '',
          '| level | head | seeds | normal | core | boundary | small | small @99 % spec | boundary @99 % spec | AUC small | AUC boundary | screen cost | screen s/slide |',
          '|' + '---|' * 13]
-    for (lv, ctx), rs in sorted(runs.items()):
+    for (lv, ctx, cfg), rs in sorted(runs.items()):
         sec = screen_seconds(lv)
-        L.append(f"| L{lv} | {'context' if ctx else 'no context'} | {len(rs)} | " + ' | '.join(ms([r['recall'][n] for r in rs]) for n in NAMES)
+        L.append(f"| L{lv} | {head_name(ctx, cfg)} | {len(rs)} | " + ' | '.join(ms([r['recall'][n] for r in rs]) for n in NAMES)
                  + f" | {ms([r['recall_at_spec']['0.99'].get('small') for r in rs])} | {ms([r['recall_at_spec']['0.99'].get('boundary') for r in rs])}"
                  + f" | {ms([r['auc_vs_normal_tumour_slides']['small'] for r in rs])} | {ms([r['auc_vs_normal_tumour_slides']['boundary'] for r in rs])}"
                  + f" | {rs[0]['screen_cost']:.4f} | {'-' if sec is None else f'{sec:.1f}'} |")
@@ -51,9 +55,9 @@ def main():
     for route in routes:
         L += ['', f'## Routing with an ideal segmenter: {route}', '',
               '| level | head | Dice tumour | Dice all | normal slides clean | zoom fraction | total cost |', '|' + '---|' * 7]
-        for (lv, ctx), rs in sorted(runs.items()):
+        for (lv, ctx, cfg), rs in sorted(runs.items()):
             g = [r['routing'][route] for r in rs]
-            L.append(f"| L{lv} | {'context' if ctx else 'no context'} | {ms([x['dice_tumour'] for x in g])} | {ms([x['dice_all'] for x in g])} | "
+            L.append(f"| L{lv} | {head_name(ctx, cfg)} | {ms([x['dice_tumour'] for x in g])} | {ms([x['dice_all'] for x in g])} | "
                      f"{ms([x['normal_clean'] for x in g])} | {ms([x['zoom_frac'] for x in g])} | {ms([x['total_cost'] for x in g])} |")
     if os.path.exists(f'{P.ROOT}/timing.json'):
         t = json.load(open(f'{P.ROOT}/timing.json'))
@@ -64,9 +68,9 @@ def main():
             L.append(f"| {lv}{' (reference: full token pass)' if lv == 'L2' else ''} | {m['crops']:.0f} | {m['wall']:.2f} | {v['median_wall']:.2f} | "
                      f"{m['tissue']:.2f} | {m['wait_io']:.2f} | {m['gpu']:.2f} | {m['head']:.3f} |")
     L += ['', '## Confusion matrices (seed 0; rows true bucket, columns predicted)', '']
-    for (lv, ctx), rs in sorted(runs.items()):
+    for (lv, ctx, cfg), rs in sorted(runs.items()):
         r = sorted(rs, key=lambda x: x['seed'])[0]
-        L += [f"### L{lv}, {'context' if ctx else 'no context'}", '', '| true \\ predicted | ' + ' | '.join(NAMES) + ' | units |', '|' + '---|' * 6]
+        L += [f"### L{lv}, {head_name(ctx, cfg)}", '', '| true \\ predicted | ' + ' | '.join(NAMES) + ' | units |', '|' + '---|' * 6]
         for i, n in enumerate(NAMES):
             row = r['confusion'][i]
             L.append(f'| {n} | ' + ' | '.join(f'{v:,}' for v in row) + f' | {sum(row):,} |')

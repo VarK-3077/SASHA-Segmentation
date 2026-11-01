@@ -37,7 +37,7 @@ def main():
     a = ap.parse_args()
     args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
     level = args['level']
-    head = ScreenHead(P.tokens_per_unit(level), ctx=bool(args['ctx'])).to(a.device).eval()
+    head = ScreenHead(P.tokens_per_unit(level), ctx=bool(args['ctx']), d=args.get('d', 256)).to(a.device).eval()
     ck = torch.load(f'{P.run_dir(a.tag)}/best.pt', map_location=a.device)
     head.load_state_dict(ck['model'])
     slides = []
@@ -59,7 +59,7 @@ def main():
         auc[name] = float(roc_auc_score(y[sel] == c, p_tum[sel]))
     m = P.units_per_crop(level)
     screen = 1.0 / (4 * m * m)
-    res = {'tag': a.tag, 'level': level, 'ctx': args['ctx'], 'seed': args['seed'], 'best_step': ck['step'],
+    res = {'tag': a.tag, 'level': level, 'ctx': args['ctx'], 'seed': args['seed'], 'config': args.get('name', ''), 'best_step': ck['step'],
            'val_macro_recall': ck['val_macro_recall'], 'n_units': int(len(y)), 'confusion': conf.tolist(),
            'recall': {['normal', 'core', 'boundary', 'small'][c]: float(conf[c, c] / conf[c].sum()) for c in range(4)},
            'recall_at_spec': recall_at_spec(p_tum, y), 'auc_vs_normal_tumour_slides': auc, 'screen_cost': screen,
