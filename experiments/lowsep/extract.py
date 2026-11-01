@@ -101,9 +101,9 @@ def main():
         train = sorted(n for n in names if split[n] == 'train')
         pick = list(np.random.default_rng(0).choice(train, PCA_SLIDES, replace=False))
         mu, W, kept, n = fit_pca(enc, a.level, pick, a.workers, a.device)
-        torch.save({'mu': mu.cpu(), 'W': W.cpu(), 'kept': kept, 'n': n, 'slides': pick}, pca_path)
+        torch.save({'mu': mu.cpu(), 'W': W.cpu(), 'kept': kept, 'n': n, 'slides': [str(s) for s in pick]}, pca_path)
         print(f'L{a.level} pca: {n} tokens from {PCA_SLIDES} train slides, variance kept {kept:.3f}', flush=True)
-    pca = torch.load(pca_path)
+    pca = torch.load(pca_path, weights_only=False)
     mu, W = pca['mu'].to(a.device), pca['W'].to(a.device)
     times = {}
     for i, name in enumerate(names):

@@ -1,7 +1,5 @@
 # Status report: RL-guided segmentation on top of SASHA
 
-October 2026. Written for someone who knows SASHA and has not followed this project.
-
 ## 1. The problem and the narrow question we chose
 
 SASHA classifies a whole-slide image by reading every tile at low resolution, letting an RL
