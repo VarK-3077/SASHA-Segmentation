@@ -51,6 +51,13 @@ def main():
                  + f" | {ms([r['recall_at_spec']['0.99'].get('small') for r in rs])} | {ms([r['recall_at_spec']['0.99'].get('boundary') for r in rs])}"
                  + f" | {ms([r['auc_vs_normal_tumour_slides']['small'] for r in rs])} | {ms([r['auc_vs_normal_tumour_slides']['boundary'] for r in rs])}"
                  + f" | {rs[0]['screen_cost']:.4f} | {'-' if sec is None else f'{sec:.1f}'} |")
+    budgets = list(next(iter(runs.values()))[0].get('frontier', {}).keys()) if runs else []
+    if budgets:
+        L += ['', '## Budget frontier: Dice on tumour slides when the top-b fraction of units by p(tumour) is zoomed (ideal segmenter, nothing selected)', '',
+              '| level | head | ' + ' | '.join(f'b = {b}' for b in budgets) + ' | screen cost |', '|' + '---|' * (len(budgets) + 3)]
+        for (lv, ctx, cfg), rs in sorted(runs.items()):
+            L.append(f"| L{lv} | {head_name(ctx, cfg)} | " + ' | '.join(ms([r['frontier'][b]['dice_tumour'] for r in rs if 'frontier' in r]) for b in budgets)
+                     + f" | {rs[0]['screen_cost']:.4f} |")
     routes = list(next(iter(runs.values()))[0]['routing'].keys()) if runs else []
     for route in routes:
         L += ['', f'## Routing with an ideal segmenter: {route}', '',

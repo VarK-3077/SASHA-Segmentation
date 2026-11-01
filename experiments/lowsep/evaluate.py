@@ -16,7 +16,7 @@ from sklearn.metrics import roc_auc_score
 from experiments.lowsep import paths as P
 from experiments.lowsep.maps import SlideMaps
 from experiments.lowsep.model import ScreenHead
-from experiments.lowsep.routing import ROUTES, route_scores
+from experiments.lowsep.routing import ROUTES, frontier, route_scores
 from experiments.lowsep.train import names_of, predict
 
 SPECS = (0.99, 0.95)
@@ -68,6 +68,7 @@ def main():
         r = route_scores(slides, name)
         r['total_cost'] = screen + r['zoom_frac']
         res['routing'][name] = r
+    res['frontier'] = frontier(slides)
     json.dump(res, open(f'{P.run_dir(a.tag)}/test.json', 'w'), indent=1)
     rt = res['routing']['argmax']
     print(f"{a.tag}: recall {[round(v, 3) for v in res['recall'].values()]} | small@99 {res['recall_at_spec']['0.99'].get('small', 0):.3f} "
