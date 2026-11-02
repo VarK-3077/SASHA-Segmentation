@@ -75,6 +75,8 @@ def main():
     ap.add_argument('--budget', type=float, default=0.2)
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--select', default='auc', choices=('auc', 'dice'))
+    ap.add_argument('--equal_test_budget', action='store_true',
+                    help='threshold = quantile of the test slides\' own p(tumour) (no labels), so every level keeps exactly the budget')
     a = ap.parse_args()
     summary = {}
     for level in (3, 4, 5, 6):
@@ -83,9 +85,12 @@ def main():
         out = f'{a.out_root}/ideal_L{level}'
         os.makedirs(out, exist_ok=True)
         units = zoomed = 0
-        for n in names_of('test', level):
-            m = SlideMaps(n, level)
-            p_tum = 1 - predict(head, m, a.device)[0]
+        maps = {n: SlideMaps(n, level) for n in names_of('test', level)}
+        probs = {n: 1 - predict(head, m, a.device)[0] for n, m in maps.items()}
+        if a.equal_test_budget:
+            thr = float(np.quantile(np.concatenate([probs[n][m.tissue] for n, m in maps.items()]), 1 - a.budget))
+        for n, m in maps.items():
+            p_tum = probs[n]
             zoom = m.tissue & (p_tum >= thr)
             units += int(m.tissue.sum()); zoomed += int(zoom.sum())
             np.savez_compressed(f'{out}/{n}.npz', probs=ideal_map(n, zoom).astype(np.float16), stride=CELL, level=5)
