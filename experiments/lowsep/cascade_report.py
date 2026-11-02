@@ -42,12 +42,15 @@ def main(root):
     for v in VARIANTS:
         lines.append(f"| full L2 token head | {v} | {np.mean([r['wall'] for r in t]):.2f} | {np.median([r['wall'] for r in t]):.2f} | "
                      f"- / - / {np.mean([r['wall'] for r in t]):.2f} | 100 % | {fmt_scores(score_row(f'{BASE}/clean_test.json', v))} |")
-    for d in sorted(glob.glob(f'{root}/cascade_L*')):
+    for d in sorted(glob.glob(f'{root}/cascade_L*')) + sorted(glob.glob(f'{root}/cascadepipe_L*')):
         t = [json.load(open(f)) for f in sorted(glob.glob(f'{d}/test_*_time.json'))]
         if not t:
             continue
         seg = 100 * sum(r['zoomed'] for r in t) / max(1, sum(r['units'] for r in t))
-        split = f"{np.mean([r['tissue'] for r in t]):.2f} / {np.mean([r['screen'] for r in t]):.2f} / {np.mean([r['segment'] for r in t]):.2f}"
+        if 'screen' in t[0]:
+            split = f"{np.mean([r['tissue'] for r in t]):.2f} / {np.mean([r['screen'] for r in t]):.2f} / {np.mean([r['segment'] for r in t]):.2f}"
+        else:  # pipelined: screen and segment overlap, the tail is segmentation left after the screen ends
+            split = f"{np.mean([r['tissue'] for r in t]):.2f} / {np.mean([r['screen_phase'] for r in t]):.2f} (overlapped) / {np.mean([r['tail'] for r in t]):.2f} tail"
         for v in VARIANTS:
             sc = score_row(f'{d}/clean.json', v) if os.path.exists(f'{d}/clean.json') else None
             lines.append(f"| {os.path.basename(d)} | {v} | {np.mean([r['wall'] for r in t]):.2f} | {np.median([r['wall'] for r in t]):.2f} | "
