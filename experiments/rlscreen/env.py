@@ -41,6 +41,15 @@ class SlideTable:
         self.lesions = np.unique(self.lu_lesion)
         self.lesion_px = z['lesion_px'].astype(np.float64)
         self.has_tumour = self.tumour_px > 0
+        # each unit's own share of the two recalls (both are sums over units under the ideal segmenter)
+        hw = self.hu * self.wu
+        self.share_area = (self.frac / self.tumour_px if self.has_tumour else np.zeros_like(self.frac)).reshape(-1)
+        if len(self.lesions):
+            w = self.lu_px / self.lesion_px[self.lu_lesion] / len(self.lesions)
+            self.share_lesion = np.bincount(self.lu_unit, weights=w, minlength=hw)[:hw]
+        else:
+            self.share_lesion = self.share_area.copy()
+        self.share = {'area': self.share_area, 'lesion': self.share_lesion, 'mix': 0.5 * (self.share_area + self.share_lesion)}
 
 
 class Episode:
@@ -77,26 +86,36 @@ class Episode:
         return torch.stack([torch.ones_like(free), can_screen, free], -1)
 
     def step(self, stop, actions):
-        """stop: bool; actions: (hu, wu) long tensor. Returns the round reward."""
+        """stop: bool; actions: (hu, wu) long tensor. Returns the round reward and its per-unit split
+        (hu, wu) numpy: each zoomed unit's own Jaccard gain minus each acted unit's own price, both
+        scaled by S^J(t-1); the round's fixed dispatch price is the remainder, so the map sums to the
+        round reward minus that price."""
+        t = self.t
+        zero = np.zeros((t.hu, t.wu), np.float32)
         if stop or self.round >= R_MAX:
             self.done = True
-            return 0.0
-        sc = (actions == SCREEN) & self.t.tissue & ~self.screened & ~self.zoomed
-        zm = (actions == ZOOM) & self.t.tissue & ~self.zoomed
+            return 0.0, zero
+        sc = (actions == SCREEN) & t.tissue & ~self.screened & ~self.zoomed
+        zm = (actions == ZOOM) & t.tissue & ~self.zoomed
         ns, nz = int(sc.sum()), int(zm.sum())
         if ns + nz == 0:
             self.done = True
-            return 0.0
+            return 0.0, zero
         self.screened |= sc
         self.zoomed |= zm
         self.n_screen += ns; self.n_zoom += nz
-        cost = C.cost_fraction(self.t.backbone, ns, nz, self.t.n_units)
+        cost = C.cost_fraction(t.backbone, ns, nz, t.n_units)
         self.spent += cost
         self.round += 1
         J0, self.J = self.J, self.quality()
         if self.round >= R_MAX:
             self.done = True
-        return float(self.S ** J0 * (self.J - J0 - self.lam * cost))
+        full = C.FULL_PER_UNIT * max(t.n_units, 1)
+        zmn, scn = zm.cpu().numpy(), sc.cpu().numpy()
+        gain = t.share[self.metric].reshape(t.hu, t.wu) * zmn if t.has_tumour else zero
+        price = (zmn * C.ZOOM_PER_UNIT + scn * C.L3_PER_UNIT[t.backbone]) / full
+        per_unit = (self.S ** J0 * (gain - self.lam * price)).astype(np.float32)
+        return float(self.S ** J0 * (self.J - J0 - self.lam * cost)), per_unit
 
     def seconds(self):
         g = 3 if self.t.design == 'full' else self.t.g_level

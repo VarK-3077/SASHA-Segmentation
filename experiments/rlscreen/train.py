@@ -35,10 +35,24 @@ def pick_slides(rng, tables, n):
     return list(rng.choice(tum, k, replace=False)) + list(rng.choice(nor, n - k, replace=False))
 
 
-def forward(policy, tab, tr, state):
+def forward(policy, tab, tr, state, unit_values=False):
     planes, scal = observation(tab, tr['s'], state)
-    logits, stop_logit, value = policy(planes[None], scal[None], tab.tissue[None])
-    return distributions(logits[0], stop_logit[0], tr['allowed']), value[0]
+    out = policy(planes[None], scal[None], tab.tissue[None], unit_values=unit_values)
+    d = distributions(out[0][0], out[1][0], tr['allowed'])
+    return (d, out[2][0], out[3][0]) if unit_values else (d, out[2][0])
+
+
+def unit_returns(trans, n_units):
+    """Per-unit Monte-Carlo returns: each unit's own future rewards, scaled by the slide's unit count so
+    a unit's return is in the same range on small and large slides."""
+    g = np.zeros_like(trans[0]['r_map'])
+    for tr in reversed(trans):
+        g = g + tr['r_map'] * n_units
+        tr['G_u'] = g.copy()
+    s = 0.0
+    for tr in reversed(trans):
+        s += tr['r']
+        tr['G'] = s
 
 
 def bc(policy, tables, a, rng, log):
@@ -83,6 +97,61 @@ def gae(rewards, values, lam=0.95):
         last = rewards[i] + nxt - values[i] + lam * last
         adv[i] = last
     return adv, adv + np.asarray(values)
+
+
+def ppo_unit(policy, ref, tables, a, rng, log, val, save):
+    """PPO with per-unit credit: every unit's decision is judged by its own return (its own Jaccard gain
+    minus its own price) against a per-unit value; the stop decision by the slide's return against
+    the slide value. Exact for the ideal segmenter, where quality and cost are sums over units."""
+    opt = torch.optim.AdamW(policy.parameters(), lr=a.lr, weight_decay=1e-4)
+    for u in range(a.updates):
+        t0 = time.time()
+        batch, stats, returns = [], [], []
+        for tab in pick_slides(rng, tables, a.episodes):
+            summ, trans = play(tab, lam_sample(rng, a), 'policy', a.metric, a.S, policy=policy, state=a.state)
+            unit_returns(trans, tab.n_units)
+            batch += [(tab, tr) for tr in trans]
+            stats.append(summ)
+            returns.append(trans[0]['G'])
+        with torch.no_grad():  # baselines from the current critic, then normalised advantages
+            for tab, tr in batch:
+                _, v, vu = forward(policy, tab, tr, a.state, unit_values=True)
+                tr['A_s'] = tr['G'] - float(v)
+                tr['A_u'] = torch.from_numpy(tr['G_u']).to(vu.device) - vu
+        au = torch.cat([tr['A_u'][tab.tissue] for tab, tr in batch if not tr['stop']] or [torch.zeros(1, device=a.device)])
+        mu_u, sd_u = float(au.mean()), float(au.std()) + 1e-8
+        as_ = np.array([tr['A_s'] for _, tr in batch])
+        mu_s, sd_s = as_.mean(), as_.std() + 1e-8
+        for _ in range(a.epochs):
+            for i in rng.permutation(len(batch)):
+                tab, tr = batch[i]
+                (ud, sdist), v, vu = forward(policy, tab, tr, a.state, unit_values=True)
+                m = tab.tissue
+                A_s = (tr['A_s'] - mu_s) / sd_s
+                st = torch.tensor(float(tr['stop']), device=v.device)
+                r_s = torch.exp(sdist.log_prob(st) - tr['lp_s'])
+                loss = -torch.min(r_s * A_s, r_s.clamp(1 - a.clip, 1 + a.clip) * A_s) + 0.5 * (v - tr['G']) ** 2
+                ent = sdist.entropy()
+                if not tr['stop']:
+                    A_u = ((tr['A_u'] - mu_u) / sd_u)[m]
+                    r_u = torch.exp(ud.log_prob(tr['a']) - tr['lp_u'])[m]
+                    loss = loss - torch.min(r_u * A_u, r_u.clamp(1 - a.clip, 1 + a.clip) * A_u).mean()
+                    loss = loss + 0.5 * ((vu - torch.from_numpy(tr['G_u']).to(vu.device))[m] ** 2).mean()
+                    ent = ent + ud.entropy()[m].mean()
+                loss = loss - a.ent * ent
+                if ref is not None and a.kl > 0:
+                    with torch.no_grad():
+                        (rud, rsd), _ = forward(ref, tab, tr, a.state)
+                    loss = loss + a.kl * (torch.distributions.kl_divergence(sdist, rsd) + torch.distributions.kl_divergence(ud, rud)[m].mean())
+                opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(policy.parameters(), 0.5); opt.step()
+        row = {'stage': 'ppo_unit', 'update': u, 'sec': time.time() - t0, 'return': float(np.mean(returns)),
+               'zoom_frac': float(np.mean([s['zoom_frac'] for s in stats])), 'screen_frac': float(np.mean([s['screen_frac'] for s in stats])),
+               'area_recall_tumour': float(np.mean([s['area_recall'] for s in stats if s['tumour']] or [0])),
+               'rounds': float(np.mean([s['rounds'] for s in stats]))}
+        if u % a.eval_every == 0 or u == a.updates - 1:
+            row['val'] = val()
+            save(f'u{u}')
+        log(row)
 
 
 def ppo(policy, ref, tables, a, rng, log, val, save):
@@ -155,6 +224,7 @@ def main():
     ap.add_argument('--ent', type=float, default=0.001)
     ap.add_argument('--kl', type=float, default=0.1, help='weight of KL(policy || cloned policy); 0 = none')
     ap.add_argument('--no_bc', action='store_true', help='PPO from scratch, no cloning and no KL anchor')
+    ap.add_argument('--credit', choices=('unit', 'round'), default='unit', help='per-unit returns (default) or one shared round advantage')
     ap.add_argument('--eval_every', type=int, default=25)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--device', default='cuda:0')
@@ -190,7 +260,7 @@ def main():
         ref = copy.deepcopy(policy).eval()
         for p in ref.parameters():
             p.requires_grad = False
-    ppo(policy, ref, tables, a, rng, log, val, save)
+    (ppo_unit if a.credit == 'unit' else ppo)(policy, ref, tables, a, rng, log, val, save)
     save('final')
     print(f'{a.tag} done', flush=True)
 

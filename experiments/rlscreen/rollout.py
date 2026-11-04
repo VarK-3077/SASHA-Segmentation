@@ -63,8 +63,8 @@ def play(tab, lam, actor, metric='mix', S=4.0, policy=None, state='full', greedy
                 if ep.round == 0:
                     a[torch.from_numpy(tab.frac > 0).to(a.device) & tab.tissue] = ZOOM
                 stop = bool((a == NONE).all())
-        r = ep.step(stop, a)
-        trans.append(dict(s=s, allowed=allowed, stop=stop, a=a, lp_u=lp_u, lp_s=lp_s, v=v, r=r))
+        r, r_map = ep.step(stop, a)
+        trans.append(dict(s=s, allowed=allowed, stop=stop, a=a, lp_u=lp_u, lp_s=lp_s, v=v, r=r, r_map=r_map))
     return summary(ep), trans
 
 

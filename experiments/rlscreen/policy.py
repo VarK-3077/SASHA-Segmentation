@@ -28,12 +28,14 @@ class ScreenPolicy(nn.Module):
         self.scal = nn.Linear(N_SCALARS, c)
         self.blocks = nn.Sequential(Block(c, 1), Block(c, 2), Block(c, 4))
         self.unit = nn.Conv2d(c, 3, 1)
+        self.unit_value = nn.Conv2d(c, 1, 1)   # each unit's own future return, for per-unit credit
         self.slide = nn.Sequential(nn.Linear(2 * c + N_SCALARS, c), nn.GELU())
         self.stop = nn.Linear(c, 1)
         self.value = nn.Linear(c, 1)
 
-    def forward(self, planes, scal, tissue):
-        """planes (B, C, H, W), scal (B, 3), tissue (B, H, W) bool -> unit logits (B, H, W, 3), stop logit (B,), value (B,)."""
+    def forward(self, planes, scal, tissue, unit_values=False):
+        """planes (B, C, H, W), scal (B, 3), tissue (B, H, W) bool -> unit logits (B, H, W, 3), stop logit (B,),
+        value (B,), and with unit_values the per-unit values (B, H, W)."""
         h = F.gelu(self.inp(planes) + self.scal(scal)[:, :, None, None])
         h = self.blocks(h)
         logits = self.unit(h).permute(0, 2, 3, 1)
@@ -42,6 +44,8 @@ class ScreenPolicy(nn.Module):
         mean = (h * m).sum((2, 3)) / n
         mx = (h - 1e4 * (1 - m)).amax((2, 3))
         g = self.slide(torch.cat([mean, mx, scal], -1))
+        if unit_values:
+            return logits, self.stop(g)[:, 0], self.value(g)[:, 0], self.unit_value(h)[:, 0]
         return logits, self.stop(g)[:, 0], self.value(g)[:, 0]
 
 
