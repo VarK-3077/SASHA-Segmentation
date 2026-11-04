@@ -1,0 +1,7 @@
+# No KL anchor (BC init only) over the low lambda range, where high-recall points pay; vivi GPU 0.
+lokl0_d2_light         --design full --state light --lam_min 0.01 --lam_max 0.3 --kl 0
+lokl0_d2_light_vits    --design full --state light --backbone kaiko_vits16 --lam_min 0.01 --lam_max 0.3 --kl 0
+lokl0_d2_full          --design full --state full --lam_min 0.01 --lam_max 0.3 --kl 0
+lokl0_d1_g6_light      --design coarse --g_level 6 --state light --lam_min 0.01 --lam_max 0.3 --kl 0
+dicekl0_d2_light_vits  --design full --state light --backbone kaiko_vits16 --metric dice --lam_min 0.01 --lam_max 0.3 --kl 0
+dicekl0_d2_light       --design full --state light --metric dice --lam_min 0.01 --lam_max 0.3 --kl 0
