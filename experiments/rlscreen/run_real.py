@@ -141,7 +141,7 @@ def run_slide(name, a, m, pools, out_path):
     while st.round < R_MAX:
         free = tab.tissue & ~st.zoomed
         if a.actor == 'teacher':
-            stop, act = T.act(st, tau=a.tau, follow=a.follow, outcome=tab.outcome)
+            stop, act = T.act(st, tau=a.tau, follow=a.follow, outcome=tab.outcome, tau_zoom=a.tau_zoom)
         else:
             snap = dict(screened=st.screened, zoomed=st.zoomed, round=st.round, spent=st.spent, lam=st.lam)
             planes, scal = observation(tab, snap, m.state, outcome=tab.outcome)
@@ -195,7 +195,8 @@ def main():
     ap.add_argument('--tag', default=None)
     ap.add_argument('--ckpt', default='final')
     ap.add_argument('--lam', type=float, default=1.0)
-    ap.add_argument('--tau', type=float, default=0.5)
+    ap.add_argument("--tau", type=float, default=0.5)
+    ap.add_argument("--tau_zoom", type=float, default=None, help="coarse design: level-3 zoom threshold (default --tau)")
     ap.add_argument('--follow', type=int, default=1)
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--out_dir', required=True)

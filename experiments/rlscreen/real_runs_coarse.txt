@@ -1,0 +1,4 @@
+# Real-segmenter A100 runs of the coarse design: L6 ViT-L global view screens p >= 0.5 at level 3
+# with the per-unit head, zooms at a separate threshold (offline best operating points).
+coarse_l6_vitl_z07  --design coarse --g_level 6 --actor teacher --tau 0.5 --tau_zoom 0.7
+coarse_l6_vitl_z08  --design coarse --g_level 6 --actor teacher --tau 0.5 --tau_zoom 0.8

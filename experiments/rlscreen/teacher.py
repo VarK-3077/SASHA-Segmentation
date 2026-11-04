@@ -23,7 +23,9 @@ def neighbours_to_follow(ep, outcome):
     return want & ep.t.tissue & ~ep.zoomed
 
 
-def act(ep, tau=0.5, follow=True, outcome=None):
+def act(ep, tau=0.5, follow=True, outcome=None, tau_zoom=None):
+    """tau_zoom: a separate level-3 zoom threshold for the coarse design (default tau)."""
+    tz = tau if tau_zoom is None else tau_zoom
     t = ep.t
     out = t.outcome if outcome is None else outcome
     dev = t.tissue.device
@@ -35,7 +37,7 @@ def act(ep, tau=0.5, follow=True, outcome=None):
         if ep.round == 0:
             a[free & (p_g >= tau)] = SCREEN
         else:
-            a[free & ep.screened & (p_3 >= tau)] = ZOOM
+            a[free & ep.screened & (p_3 >= tz)] = ZOOM
     elif ep.round == 0:
         a[free & (p_3 >= tau)] = ZOOM
     if follow and ep.round > 0:
