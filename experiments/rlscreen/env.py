@@ -19,6 +19,17 @@ from experiments.rlscreen.paths import R_MAX
 
 NONE, SCREEN, ZOOM = 0, 1, 2
 
+# Reward shaping. 'sj' (default, the original): S^J(t-1) * (dJ - lam * cost); with batched rounds
+# it pays more for the same recall spread over more rounds (up to (S - 1) / ln S times) and
+# charges cost S times over on slides without tumour. 'potential': phi(J_t) - phi(J_t-1) - lam *
+# cost with phi(J) = (S^J - 1) / ln S, the same S^J weighting of each increment in the limit of
+# small steps, but the return is phi(J_final) - lam * total cost whatever the path.
+SHAPING = os.environ.get('RLSCREEN_SHAPING', 'sj')
+
+
+def phi(J, S):
+    return J if S == 1 else (S ** J - 1) / np.log(S)
+
 
 class SlideTable:
     """Static per-slide tensors on the device, for one design."""
@@ -129,6 +140,11 @@ class Episode:
         else:
             gain = t.share[self.metric].reshape(t.hu, t.wu) * zmn
         price = (zmn * C.ZOOM_PER_UNIT + scn * C.L3_PER_UNIT[t.backbone]) / full
+        if SHAPING == 'potential':   # r = phi(J) - phi(J0) - lam * cost: the return depends only on the end point
+            dphi = phi(self.J, self.S) - phi(J0, self.S)
+            scale = dphi / (self.J - J0) if self.J > J0 else 0.0
+            per_unit = (gain * scale - self.lam * price).astype(np.float32)
+            return float(dphi - self.lam * cost), per_unit
         per_unit = (self.S ** J0 * (gain - self.lam * price)).astype(np.float32)
         return float(self.S ** J0 * (self.J - J0 - self.lam * cost)), per_unit
 

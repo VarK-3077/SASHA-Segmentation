@@ -1,0 +1,9 @@
+# Potential-based shaping (path-independent return), lambda 0.01-1, with and without the KL anchor; vivi GPU 0.
+pot_kl0_d2_light        --design full --state light --shaping potential --lam_min 0.01 --lam_max 1 --kl 0
+pot_kl0_d2_light_vits   --design full --state light --backbone kaiko_vits16 --shaping potential --lam_min 0.01 --lam_max 1 --kl 0
+pot_kl0_d2_full         --design full --state full --shaping potential --lam_min 0.01 --lam_max 1 --kl 0
+pot_kl0_d1_g6_light     --design coarse --g_level 6 --state light --shaping potential --lam_min 0.01 --lam_max 1 --kl 0
+pot_d2_light_vits       --design full --state light --backbone kaiko_vits16 --shaping potential --lam_min 0.01 --lam_max 1
+pot_d1_g6_light         --design coarse --g_level 6 --state light --shaping potential --lam_min 0.01 --lam_max 1
+pot_kl0_d2_light_s1     --design full --state light --shaping potential --lam_min 0.01 --lam_max 1 --kl 0 --seed 1
+pot_d2_full             --design full --state full --shaping potential --lam_min 0.01 --lam_max 1

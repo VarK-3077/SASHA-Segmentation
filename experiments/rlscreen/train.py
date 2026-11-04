@@ -18,6 +18,7 @@ import torch
 import torch.nn.functional as F
 
 from experiments.rlscreen import paths as P
+from experiments.rlscreen import env as E
 from experiments.rlscreen import teacher as T
 from experiments.rlscreen.env import Episode, observation
 from experiments.rlscreen.policy import ScreenPolicy, distributions
@@ -224,12 +225,14 @@ def main():
     ap.add_argument('--ent', type=float, default=0.001)
     ap.add_argument('--kl', type=float, default=0.1, help='weight of KL(policy || cloned policy); 0 = none')
     ap.add_argument('--no_bc', action='store_true', help='PPO from scratch, no cloning and no KL anchor')
+    ap.add_argument('--shaping', choices=('sj', 'potential'), default='sj', help='reward shaping (env.py); potential is path-independent')
     ap.add_argument('--credit', choices=('unit', 'round'), default='unit', help='per-unit returns (default) or one shared round advantage')
     ap.add_argument('--eval_every', type=int, default=25)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--tag', required=True)
     a = ap.parse_args()
+    E.SHAPING = a.shaping
     out = P.run_dir(a.tag)
     os.makedirs(out, exist_ok=True)
     json.dump(vars(a), open(f'{out}/args.json', 'w'), indent=1)
