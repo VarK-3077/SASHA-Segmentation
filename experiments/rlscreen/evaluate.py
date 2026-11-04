@@ -62,7 +62,7 @@ def main():
             for b, thr in cfg['thresholds'].items():
                 rows[f'supervised cascade, val budget {b}'] = agg([play(t, 1.0, 'teacher', tau=thr, follow=False)[0] for t in test])
     rows['oracle'] = agg([play(t, 1.0, 'oracle')[0] for t in test])
-    name = a.tag or f'baselines_{a.design}_L{a.g_level}_{a.backbone}'
+    name = a.tag or f'baselines_{a.design}_L{a.g_level}_{a.backbone}' + (f"_p3{os.environ['RLSCREEN_P3']}" if os.environ.get('RLSCREEN_P3') else '')
     json.dump(rows, open(f'{P.ROOT}/offline_{name}.json', 'w'), indent=1)
     keys = ('ideal_dice_tumour', 'area_recall', 'lesions_found', 'zoom_frac', 'screen_frac', 'rounds', 'seconds', 'seconds_normal')
     lines = [f'# Offline (ideal segmenter, cost-model A100 s), {name}', '', '| policy | ' + ' | '.join(keys) + ' |', '|' + '---|' * (len(keys) + 1)]

@@ -1,7 +1,8 @@
 # Trains one screen head (level, context on/off, seed) on windows of the training slides' token
 # maps, about 32 x 32 units each: half the windows are centred on a crop holding tumour, half on
 # a random tissue crop; random 90-degree rotations and flips. Class-weighted cross-entropy over
-# labelled tissue units. Every few hundred steps the whole val slides are scored and the
+# labelled tissue units. With --unit_drop, random units of each window are zeroed as if a
+# selective screen had not read them, and only read units are scored. Every few hundred steps the whole val slides are scored and the
 # checkpoint with the best val macro-recall over the four buckets is kept.
 
 import argparse
@@ -59,22 +60,41 @@ def class_weights(names, level):
     return torch.tensor(w / w.sum() * 4, dtype=torch.float32), counts
 
 
+def drop_units(tk, keep, k):
+    """Zero the token blocks of the units not kept: tk (B, C, H*k, W*k), keep (B, H, W) bool."""
+    m = keep.repeat_interleave(k, 1).repeat_interleave(k, 2)[:, None]
+    return tk * m.to(tk.dtype)
+
+
 @torch.no_grad()
-def predict(head, maps, device):
-    """Per-unit softmax over the whole slide, cropped to the slide's unit grid."""
+def predict(head, maps, device, keep=None):
+    """Per-unit softmax over the whole slide, cropped to the slide's unit grid. With keep (hu, wu)
+    bool, the tokens of every other unit are zeroed first (only those units were read)."""
     tk, _ = maps.full()
+    tk = to_device(tk, device)[None]
+    if keep is not None:
+        hu, wu = keep.shape
+        k = tk.shape[-2] // maps.target.shape[0]
+        kp = torch.zeros(1, maps.target.shape[0], maps.target.shape[1], dtype=torch.bool, device=device)
+        kp[0, :hu, :wu] = torch.as_tensor(keep, device=device)
+        tk = drop_units(tk, kp, k)
     with torch.autocast('cuda', dtype=torch.bfloat16):
-        logits = head(to_device(tk, device)[None])[0].float()
+        logits = head(tk)[0].float()
     hu, wu = maps.tissue.shape
     return torch.softmax(logits, 0)[:, :hu, :wu].cpu().numpy()
 
 
-def macro_recall(head, val, device):
+def macro_recall(head, val, device, drop=0.0):
+    """Val macro-recall over the four buckets; with drop > 0, a fixed random share of units is
+    zeroed (as unread) and only the remaining units are scored."""
     y, p = [], []
+    rng = np.random.default_rng(0)
     for m in val:
-        prob = predict(head, m, device)
-        t = m.target[:m.tissue.shape[0], :m.tissue.shape[1]]
-        keep = t >= 0
+        hu, wu = m.tissue.shape
+        kept = rng.random((hu, wu)) >= drop if drop > 0 else None
+        prob = predict(head, m, device, kept)
+        t = m.target[:hu, :wu]
+        keep = (t >= 0) if kept is None else (t >= 0) & kept
         y.append(t[keep]); p.append(prob.argmax(0)[keep])
     y, p = np.concatenate(y), np.concatenate(p)
     rec = [float((p[y == c] == c).mean()) for c in range(4) if (y == c).any()]
@@ -95,6 +115,8 @@ def main():
     ap.add_argument('--drop', type=float, default=0.1)
     ap.add_argument('--wd', type=float, default=1e-4)
     ap.add_argument('--name', default='', help='tag suffix for sweep runs')
+    ap.add_argument('--unit_drop', type=float, default=0.0,
+                    help='max share of units zeroed per training window (drawn uniformly in [0, max]); val zeroes half')
     a = ap.parse_args()
     tag = f'L{a.level}{P.backbone_tag()}_{"ctx" if a.ctx else "noctx"}{a.name}_s{a.seed}'
     out = P.run_dir(tag)
@@ -114,13 +136,19 @@ def main():
     for step in range(1, a.steps + 1):
         head.train()
         tk, tg = next(loader)
+        tk, tg = tk.to(a.device).float(), tg.to(a.device)
+        if a.unit_drop > 0:   # units left unread by a selective screen: zero their tokens, score only the read ones
+            frac = torch.rand(tg.shape[0], 1, 1, device=a.device) * a.unit_drop
+            keep = torch.rand(tg.shape, device=a.device) >= frac
+            tk = drop_units(tk, keep, tk.shape[-1] // tg.shape[-1])
+            tg = torch.where(keep, tg, torch.full_like(tg, IGNORE))
         with torch.autocast('cuda', dtype=torch.bfloat16):
-            logits = head(tk.to(a.device).float())
-        loss = F.cross_entropy(logits.float(), tg.to(a.device), weight=w, ignore_index=IGNORE)
+            logits = head(tk)
+        loss = F.cross_entropy(logits.float(), tg, weight=w, ignore_index=IGNORE)
         opt.zero_grad(); loss.backward(); opt.step(); sched.step()
         if step % a.eval_every == 0 or step == a.steps:
             head.eval()
-            mr, rec = macro_recall(head, val_maps, a.device)
+            mr, rec = macro_recall(head, val_maps, a.device, 0.5 if a.unit_drop > 0 else 0.0)
             row = {'step': step, 'loss': loss.item(), 'val_macro_recall': mr, 'val_recall': rec, 'sec': time.time() - t0}
             log.write(json.dumps(row) + '\n'); log.flush()
             print(f'{tag} step {step} loss {loss.item():.3f} val macro-recall {mr:.3f} {[round(r, 3) for r in rec]} {row["sec"]:.0f}s', flush=True)

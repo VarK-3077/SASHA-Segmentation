@@ -8,10 +8,13 @@
 # has J = 1 throughout. Reward per round: S^J(t-1) * (J(t) - J(t-1) - lam * cost), with cost the
 # round's A100 seconds over the seconds of segmenting the whole slide (costs.py).
 
+import os
+
 import numpy as np
 import torch
 
 from experiments.rlscreen import costs as C
+from experiments.rlscreen import paths as P
 from experiments.rlscreen.paths import R_MAX
 
 NONE, SCREEN, ZOOM = 0, 1, 2
@@ -30,9 +33,12 @@ class SlideTable:
         gl = 3 if design == 'full' else g_level
         t = lambda k: torch.from_numpy(z[k].astype(np.float32)).to(device)
         self.g = torch.cat([t(f'f{gl}_mean'), t(f'f{gl}_max'), t(f'p{gl}')], -1)           # (hu, wu, 516)
-        self.l3 = torch.cat([t('f3_mean'), t('f3_max'), t('p3_unit' if design == 'coarse' else 'p3')], -1)
+        p3 = z['p3_unit' if design == 'coarse' else 'p3']
+        if design == 'coarse' and os.environ.get('RLSCREEN_P3'):   # a dropout context head's outputs (p3drop.py)
+            p3 = np.load(f"{P.units_dir(backbone)}/p3drop_L{g_level}_{os.environ['RLSCREEN_P3']}/{name}.npy")
+        self.l3 = torch.cat([t('f3_mean'), t('f3_max'), torch.from_numpy(p3.astype(np.float32)).to(device)], -1)
         self.p_g = z[f'p{gl}'].astype(np.float32)
-        self.p3 = z['p3_unit' if design == 'coarse' else 'p3'].astype(np.float32)
+        self.p3 = p3.astype(np.float32)
         self.outcome = torch.cat([t('frac')[..., None], t('edges')], -1)                   # (hu, wu, 5): ideal segmenter
         self.edges = z['edges'].astype(np.float32)
         self.bucket = z['bucket']
