@@ -1,0 +1,12 @@
+# Wave 1, ViT-L screen. Design 1 = coarse (global view + selective level-3 screen + zoom), design 2 = full (whole level-3 screen + zoom).
+d1_g6        --design coarse --g_level 6
+d1_g5        --design coarse --g_level 5
+d1_g6_light  --design coarse --g_level 6 --state light
+d1_g6_S1     --design coarse --g_level 6 --S 1
+d1_g6_area   --design coarse --g_level 6 --metric area
+d1_g6_kl0    --design coarse --g_level 6 --kl 0
+d2           --design full
+d2_light     --design full --state light
+d2_kl0       --design full --kl 0
+d2_nobc      --design full --no_bc
+d1_g6_nobc   --design coarse --g_level 6 --no_bc
