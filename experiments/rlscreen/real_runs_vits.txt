@@ -1,0 +1,6 @@
+# Real-segmenter A100 timing: ViT-S/16 full-design screen (teacher at two thresholds, PPO at lam 1),
+# and the ViT-L full-design teacher to check the cost model against the measured cascade.
+vits_full_teacher_t06  --design full --backbone kaiko_vits16 --actor teacher --tau 0.6
+vits_full_teacher_t05  --design full --backbone kaiko_vits16 --actor teacher --tau 0.5
+vits_full_ppo_l1       --actor policy --tag u_d2_light_vits --lam 1
+vitl_full_teacher_t05  --design full --actor teacher --tau 0.5
