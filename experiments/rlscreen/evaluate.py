@@ -46,7 +46,9 @@ def main():
         args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
         pol = ScreenPolicy(args['state']).to(a.device).eval()
         pol.load_state_dict(torch.load(f'{P.run_dir(a.tag)}/{a.ckpt}.pt', map_location=a.device))
-        for lam in LAMS:
+        lams = LAMS if (args['lam_min'], args['lam_max']) == (0.1, 10.0) else \
+            tuple(float(x) for x in np.geomspace(args['lam_min'], args['lam_max'], 5).round(4))   # the run's own range
+        for lam in lams:
             rows[f'agent lam={lam:g}'] = agg([play(t, lam, 'policy', args['metric'], args['S'], policy=pol, state=args['state'], greedy=True)[0] for t in test])
             print(a.tag, lam, rows[f'agent lam={lam:g}'], flush=True)
     for tau in a.taus:

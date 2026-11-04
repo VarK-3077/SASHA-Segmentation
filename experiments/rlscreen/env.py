@@ -3,7 +3,8 @@
 # coarse design only) / zoom (segment it at level 2, revealing the outcome). A round that picks
 # nothing also ends the episode, as does round R_MAX. With the ideal segmenter a zoomed unit
 # contributes exactly its ground-truth tumour, so quality J is a recall: of tumour area ('area'),
-# of non-ITC lesions weighted equally ('lesion'), or their mean ('mix'); a slide without tumour
+# of non-ITC lesions weighted equally ('lesion'), their mean ('mix'), or the ideal mask's
+# per-slide Dice 2a / (1 + a) ('dice'); a slide without tumour
 # has J = 1 throughout. Reward per round: S^J(t-1) * (J(t) - J(t-1) - lam * cost), with cost the
 # round's A100 seconds over the seconds of segmenting the whole slide (costs.py).
 
@@ -71,6 +72,8 @@ class Episode:
         area = float(tab.frac[zm].sum() / tab.tumour_px)
         if self.metric == 'area':
             return area
+        if self.metric == 'dice':   # per-slide Dice of the ideal mask: no false positives, so 2a / (1 + a)
+            return 2 * area / (1 + area)
         if len(tab.lesions):
             hit = zm.reshape(-1)[tab.lu_unit]
             covered = np.bincount(tab.lu_lesion[hit], weights=tab.lu_px[hit], minlength=len(tab.lesion_px))
@@ -112,7 +115,13 @@ class Episode:
             self.done = True
         full = C.FULL_PER_UNIT * max(t.n_units, 1)
         zmn, scn = zm.cpu().numpy(), sc.cpu().numpy()
-        gain = t.share[self.metric].reshape(t.hu, t.wu) * zmn if t.has_tumour else zero
+        if not t.has_tumour:
+            gain = zero
+        elif self.metric == 'dice':   # not additive: split the round's exact Dice gain by area share
+            sa = t.share_area.reshape(t.hu, t.wu) * zmn
+            gain = sa * ((self.J - J0) / sa.sum()) if sa.sum() > 0 else zero
+        else:
+            gain = t.share[self.metric].reshape(t.hu, t.wu) * zmn
         price = (zmn * C.ZOOM_PER_UNIT + scn * C.L3_PER_UNIT[t.backbone]) / full
         per_unit = (self.S ** J0 * (gain - self.lam * price)).astype(np.float32)
         return float(self.S ** J0 * (self.J - J0 - self.lam * cost)), per_unit

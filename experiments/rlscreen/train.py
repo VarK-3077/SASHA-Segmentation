@@ -208,7 +208,7 @@ def main():
     ap.add_argument('--g_level', type=int, default=6)
     ap.add_argument('--backbone', default='kaiko_vitl14')
     ap.add_argument('--state', choices=('full', 'light'), default='full')
-    ap.add_argument('--metric', choices=('area', 'lesion', 'mix'), default='mix')
+    ap.add_argument('--metric', choices=('area', 'lesion', 'mix', 'dice'), default='mix')
     ap.add_argument('--S', type=float, default=4.0)
     ap.add_argument('--lam_min', type=float, default=0.1)
     ap.add_argument('--lam_max', type=float, default=10.0)
@@ -245,7 +245,7 @@ def main():
         print({k: (round(v, 4) if isinstance(v, float) else v) for k, v in row.items() if k != 'val'}, row.get('val', ''), flush=True)
 
     def val():
-        res = [play(t, 1.0, 'policy', a.metric, a.S, policy=policy, state=a.state, greedy=True)[0] for t in val_tabs]
+        res = [play(t, float(np.sqrt(a.lam_min * a.lam_max)), 'policy', a.metric, a.S, policy=policy, state=a.state, greedy=True)[0] for t in val_tabs]
         return {'area_recall_tumour': float(np.mean([r['area_recall'] for r in res if r['tumour']])),
                 'lesion_recall_tumour': float(np.mean([r['lesion_recall'] for r in res if r['tumour']])),
                 'zoom_frac': float(np.mean([r['zoom_frac'] for r in res])), 'seconds': float(np.mean([r['seconds'] for r in res]))}

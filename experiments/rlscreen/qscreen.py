@@ -31,7 +31,6 @@ from experiments.rlscreen.rollout import load_tables, play
 
 SCALE = 10.0      # targets are n * share / SCALE
 CAP = 300.0       # n * share capped here (a whole-slide lesion in one unit); only affects the extreme tail
-LAMS = (0.03, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0)
 
 
 def prices(backbone):
@@ -164,7 +163,7 @@ def main():
             loss = train_epoch(net, target, data, a, opt, rng)
             target = copy.deepcopy(net).eval()
         net.eval()
-        v = evaluate(net, val_tabs, a, (0.3, 3.0))
+        v = evaluate(net, val_tabs, a, tuple(np.geomspace(a.lam_min, a.lam_max, 4)[1:3].round(4)))
         net.train()
         log({'iter': it, 'states': len(data), 'loss': loss, 'sec': time.time() - t0,
              'val': {k: {c: round(x, 3) for c, x in r.items() if c in ('ideal_dice_tumour', 'zoom_frac', 'screen_frac', 'rounds', 'seconds')} for k, r in v.items()}})
@@ -172,7 +171,7 @@ def main():
     torch.save(net.state_dict(), f'{out}/final.pt')
     net.eval()
     test = load_tables('test', a.design, a.g_level, a.backbone, a.device)
-    rows = evaluate(net, test, a, LAMS)
+    rows = evaluate(net, test, a, tuple(float(x) for x in np.geomspace(a.lam_min, a.lam_max, 7).round(4)))
     json.dump(rows, open(f'{P.ROOT}/offline_{a.tag}.json', 'w'), indent=1)
     keys = ('ideal_dice_tumour', 'area_recall', 'lesions_found', 'zoom_frac', 'screen_frac', 'rounds', 'seconds', 'seconds_normal')
     lines = [f'# Offline (ideal segmenter, cost-model A100 s), {a.tag}', '', '| policy | ' + ' | '.join(keys) + ' |', '|' + '---|' * (len(keys) + 1)]
