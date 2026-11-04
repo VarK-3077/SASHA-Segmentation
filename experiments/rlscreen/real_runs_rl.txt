@@ -1,0 +1,5 @@
+# Real-segmenter A100 runs of the RL (PPO, per-unit credit) policies, full design: ViT-L full state
+# (offline lambda barely matters: 0.950-0.953 ideal Dice over 0.1-10) and ViT-S light state at two lambdas.
+rl_vitl_full_l1   --design full --actor policy --tag u_d2_full --lam 1
+rl_vits_light_l1  --design full --backbone kaiko_vits16 --actor policy --tag u_d2_light_vits --lam 1
+rl_vits_light_l3  --design full --backbone kaiko_vits16 --actor policy --tag u_d2_light_vits --lam 3
