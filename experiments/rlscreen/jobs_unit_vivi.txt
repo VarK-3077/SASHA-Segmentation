@@ -1,0 +1,5 @@
+# Per-unit credit (now the default), light state, vivi GPU 0.
+u_d2_light       --design full --state light
+u_d1_g6_light    --design coarse --g_level 6 --state light
+u_d1_g5_light    --design coarse --g_level 5 --state light
+u_d2_light_kl0   --design full --state light --kl 0

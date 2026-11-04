@@ -1,0 +1,6 @@
+# Per-unit credit, isp-a100: full state, no KL, seeds, and from scratch.
+u_d2_full          --design full
+u_d1_g6_light_kl0  --design coarse --g_level 6 --state light --kl 0
+u_d2_light_s1      --design full --state light --seed 1
+u_d1_g6_light_s1   --design coarse --g_level 6 --state light --seed 1
+u_d2_light_nobc    --design full --state light --no_bc
