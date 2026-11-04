@@ -1,0 +1,9 @@
+# Value-based agent with analytic lambda (qscreen.py), vivi GPU 0. Run with RLSCREEN_MOD=qscreen.
+q_d1_g6_light        --design coarse --g_level 6 --state light
+q_d2_light           --design full --state light
+q_d1_g6_full         --design coarse --g_level 6 --state full
+q_d2_full            --design full --state full
+q_d1_g5_light        --design coarse --g_level 5 --state light
+q_d1_g6_light_vits   --design coarse --g_level 6 --state light --backbone kaiko_vits16
+q_d2_light_vits      --design full --state light --backbone kaiko_vits16
+q_d1_g6_light_s1     --design coarse --g_level 6 --state light --seed 1

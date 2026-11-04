@@ -54,6 +54,9 @@ def play(tab, lam, actor, metric='mix', S=4.0, policy=None, state='full', greedy
     while not ep.done:
         if actor == 'policy':
             s, allowed, stop, a, lp_u, lp_s, v = policy_step(policy, tab, ep, state, greedy)
+        elif callable(actor):  # any function ep -> (stop, actions), e.g. the value-based agent
+            s, allowed, v, lp_u, lp_s = snapshot(ep), ep.allowed(), 0.0, None, None
+            stop, a = actor(ep)
         else:
             s, allowed, v, lp_u, lp_s = snapshot(ep), ep.allowed(), 0.0, None, None
             if actor == 'teacher':
