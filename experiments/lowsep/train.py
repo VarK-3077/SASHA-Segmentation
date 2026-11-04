@@ -96,7 +96,7 @@ def main():
     ap.add_argument('--wd', type=float, default=1e-4)
     ap.add_argument('--name', default='', help='tag suffix for sweep runs')
     a = ap.parse_args()
-    tag = f'L{a.level}_{"ctx" if a.ctx else "noctx"}{a.name}_s{a.seed}'
+    tag = f'L{a.level}{P.backbone_tag()}_{"ctx" if a.ctx else "noctx"}{a.name}_s{a.seed}'
     out = P.run_dir(tag)
     os.makedirs(out, exist_ok=True)
     json.dump(vars(a), open(f'{out}/args.json', 'w'), indent=1)

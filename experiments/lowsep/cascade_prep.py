@@ -26,6 +26,17 @@ def load_head(tag, device):
     return head
 
 
+def head_tags(level, ctx=None):
+    """Seed-0 run tags of the current backbone at a level (ctx: None = any, True / False = only that head)."""
+    pre = f'L{level}{P.backbone_tag()}_'
+    out = []
+    for d in sorted(glob.glob(f'{P.ROOT}/runs/{pre}*_s0')):
+        rest = os.path.basename(d)[len(pre):]
+        if rest.startswith('ctx') and ctx is not False or rest.startswith('noctx') and ctx is not True:
+            out.append(os.path.basename(d))
+    return out
+
+
 def val_scores(head, level, device):
     p, y = [], []
     for n in names_of('val', level):
@@ -39,8 +50,7 @@ def main(device='cuda:0'):
     cfg = {}
     for level in (3, 4):
         best = None
-        for d in sorted(glob.glob(f'{P.ROOT}/runs/L{level}_*_s0')):
-            tag = os.path.basename(d)
+        for tag in head_tags(level):
             p, y = val_scores(load_head(tag, device), level, device)
             auc = float(roc_auc_score(y, p))
             print(f'L{level} {tag}: val AUC tumour-vs-normal units {auc:.4f}', flush=True)

@@ -55,12 +55,17 @@ class Crops(Dataset):
 
 @torch.no_grad()
 def tokens(enc, x):
-    """uint8 (B, 3, 224, 224) -> (B, 1024, 16, 16) float32 patch tokens."""
+    """uint8 (B, 3, 224, 224) -> (B, D, 16, 16) float32 patch tokens. Backbones with another patch
+    grid (ViT-S/16 gives 14 x 14 at 224 px) are resampled to 16 x 16 so every map shares one layout."""
     x = (x.float() / 255.0 - enc.mean) / enc.std
     with torch.autocast('cuda', dtype=torch.bfloat16):
         h = enc.model.forward_features(x)
-    t = h[:, h.shape[1] - P.TOK * P.TOK:].float()
-    return t.transpose(1, 2).reshape(len(x), -1, P.TOK, P.TOK)
+    ps = enc.model.patch_embed.patch_size
+    g = 224 // (ps[0] if isinstance(ps, (tuple, list)) else ps)
+    t = h[:, h.shape[1] - g * g:].float().transpose(1, 2).reshape(len(x), -1, g, g)
+    if g != P.TOK:
+        t = torch.nn.functional.interpolate(t, size=(P.TOK, P.TOK), mode='bilinear', align_corners=False)
+    return t
 
 
 def slide_loader(name, level, rc, workers):
@@ -69,13 +74,14 @@ def slide_loader(name, level, rc, workers):
 
 def fit_pca(enc, level, names, workers, device):
     rng = np.random.default_rng(level)
-    xtx, s, n = torch.zeros(1024, 1024, device=device, dtype=torch.float64), torch.zeros(1024, device=device, dtype=torch.float64), 0
+    D = enc.dim
+    xtx, s, n = torch.zeros(D, D, device=device, dtype=torch.float64), torch.zeros(D, device=device, dtype=torch.float64), 0
     for name in names:
         rc = crop_grid(name, level)
         for x in slide_loader(name, level, rc, workers):
-            t = tokens(enc, x.to(device)).permute(0, 2, 3, 1).reshape(len(x), -1, 1024)
+            t = tokens(enc, x.to(device)).permute(0, 2, 3, 1).reshape(len(x), -1, D)
             idx = torch.tensor(rng.integers(0, P.TOK * P.TOK, (len(x), PCA_TOKENS_PER_CROP)), device=device)
-            t = torch.gather(t, 1, idx[..., None].expand(-1, -1, 1024)).reshape(-1, 1024).double()
+            t = torch.gather(t, 1, idx[..., None].expand(-1, -1, D)).reshape(-1, D).double()
             xtx += t.T @ t; s += t.sum(0); n += len(t)
     mu = s / n
     cov = xtx / n - torch.outer(mu, mu)
@@ -90,10 +96,11 @@ def main():
     ap.add_argument('--level', type=int, required=True)
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--workers', type=int, default=10)
+    ap.add_argument('--backbone', default=P.BACKBONE, help='any experiments.sep.backbones key, e.g. kaiko_vits16')
     a = ap.parse_args()
-    out = P.tok_dir(a.level)
+    out = P.tok_dir(a.level, a.backbone)
     os.makedirs(out, exist_ok=True)
-    enc = Encoder('kaiko_vitl14', a.device)
+    enc = Encoder(a.backbone, a.device)
     split = P.split_of()
     names = sorted(split)
     pca_path = f'{out}/pca.pt'

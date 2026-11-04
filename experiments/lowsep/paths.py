@@ -44,8 +44,16 @@ def label_npz(name):
     return f'{ROOT}/labels/{name}.npz'
 
 
-def tok_dir(level):
-    return f'{ROOT}/tokens_L{level}'
+BACKBONE = os.environ.get('LOWSEP_BACKBONE', 'kaiko_vitl14')  # screen backbone; other values get their own dirs and run tags
+
+
+def tok_dir(level, backbone=None):
+    backbone = backbone or BACKBONE
+    return f'{ROOT}/tokens_L{level}' + ('' if backbone == 'kaiko_vitl14' else f'_{backbone}')
+
+
+def backbone_tag():
+    return '' if BACKBONE == 'kaiko_vitl14' else f'_{BACKBONE}'
 
 
 def run_dir(tag):
