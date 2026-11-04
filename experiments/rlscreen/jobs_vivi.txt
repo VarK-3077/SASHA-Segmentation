@@ -1,0 +1,8 @@
+# vivi GPU 0 share: seeds of the two main configurations, longer training, a wider lambda range.
+d1_g6_s1       --design coarse --g_level 6 --seed 1
+d2_s1          --design full --seed 1
+d1_g6_s2       --design coarse --g_level 6 --seed 2
+d2_s2          --design full --seed 2
+d1_g6_long     --design coarse --g_level 6 --updates 900
+d2_long        --design full --updates 900
+d1_g6_lamwide  --design coarse --g_level 6 --lam_min 0.03 --lam_max 30

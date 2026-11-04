@@ -3,7 +3,7 @@
 
 import os
 
-ROOT = '/data2/venkatavks/rlscreen'
+ROOT = os.environ.get('RLSCREEN_ROOT', '/data2/venkatavks/rlscreen')  # vivi: /var/tmp/venkatavks/rlscreen (its /data2 is full)
 G_LEVELS = (5, 6)            # cheap global views for the coarse-to-fine agent
 R_MAX = 6                    # rounds per episode at most
 NON_TRUSTED_SKIP = True      # drop non-exhaustively annotated training slides from RL episodes

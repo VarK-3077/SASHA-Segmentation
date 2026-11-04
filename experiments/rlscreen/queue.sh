@@ -7,7 +7,7 @@ cd ~/SASHA-Segmentation
 export PYTHONPATH=. OMP_NUM_THREADS=2
 PY=~/envs/sasha-seg/bin/python
 JOBS=$1; DEV=${2:-cuda:0}; K=${3:-3}
-R=/data2/venkatavks/rlscreen
+R=${RLSCREEN_ROOT:-/data2/venkatavks/rlscreen}
 job() {
   tag=$1; shift
   [ -f $R/offline_$tag.json ] && return 0
