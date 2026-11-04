@@ -51,8 +51,8 @@ class Models:
         self.l3_unit_head = load_head(heads['L3_unit'][1], a.device)
         pca = lambda lv: {k: v.to(a.device) for k, v in torch.load(f'{LP.tok_dir(lv, a.backbone)}/pca.pt', weights_only=False).items() if k in ('mu', 'W')}
         self.pca_g, self.pca_3 = pca(g), pca(3)
-        self.seg = TokenNet().cuda().eval()
-        self.seg.head.load_state_dict(torch.load(a.seg_ckpt, map_location='cuda')['model'])
+        self.seg = TokenNet().to(a.device).eval()
+        self.seg.head.load_state_dict(torch.load(a.seg_ckpt, map_location=a.device)['model'])
         self.policy = None
         if a.actor == 'policy':
             args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
@@ -203,12 +203,15 @@ def main():
     ap.add_argument('--screen_workers', type=int, default=8)
     ap.add_argument('--seg_workers', type=int, default=8)
     a = ap.parse_args()
+    if a.actor == 'policy':  # the run's own design / views, never the command line's
+        args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
+        a.design, a.g_level, a.backbone = args['design'], args['g_level'], args['backbone']
     os.makedirs(a.out_dir, exist_ok=True)
     ctx = get_context('fork')  # pools before CUDA; readers never touch the GPU
     pools = {'screen': ctx.Pool(a.screen_workers), 'seg': ctx.Pool(a.seg_workers)}
     m = Models(a)
     with torch.no_grad():
-        m.seg(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device='cuda'))
+        m.seg(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device=a.device))
         tokens(m.enc, torch.zeros(2, 3, 224, 224, dtype=torch.uint8, device=a.device))
     torch.cuda.synchronize()
     names = names_of('test', 6)

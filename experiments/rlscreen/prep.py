@@ -1,8 +1,8 @@
 # Builds one table per slide that every RL screening experiment reads, so episodes never touch
 # slides or backbones. Per 2048 px unit: tissue flag, tumour fraction and bucket (lowsep labels);
 # how much of each border strip is tumour (the signal a segmented unit gives about its
-# neighbours); the lesions it touches and their pixel counts, with ITCs (< 275 um) flagged as the
-# official evaluation does; and the views: mean and max pooled screen tokens plus the supervised
+# neighbours); the lesions it touches and their pixel counts, lesions being the official
+# evaluation components (75 um dilation, holes filled) with ITCs (< 275 um) flagged; and the views: mean and max pooled screen tokens plus the supervised
 # head's four bucket probabilities at the global levels 5 / 6 and at level 3. Level 3 has two
 # head outputs: the best per-unit (no-context) head, valid when only some units are screened, and
 # the best head overall on the full map. Heads are picked per level by val AUC, nothing else.
@@ -14,7 +14,6 @@ import os
 
 import numpy as np
 import torch
-from skimage import measure
 from sklearn.metrics import roc_auc_score
 
 from experiments.lowsep import paths as LP
@@ -22,11 +21,10 @@ from experiments.lowsep.cascade_prep import head_tags, load_head, val_scores
 from experiments.lowsep.maps import SlideMaps
 from experiments.lowsep.train import names_of, predict
 from experiments.rlscreen import paths as P
-from utils.segmentation_metrics import rasterize_mask, read_xml_polygons
+from utils.segmentation_metrics import evaluation_mask, itc_labels, rasterize_mask, read_xml_polygons
 
 KM = LP.UNIT // LP.MASK_DS   # mask cells per unit side (128)
-STRIP = 2                    # border strip width in mask cells (32 level-0 px)
-ITC_UM = 275
+STRIP = 64 // LP.MASK_DS     # border strip = one level-2 token row (64 level-0 px), as run_real measures it
 
 
 def pick_head(level, ctx, device):
@@ -64,12 +62,13 @@ def gt_tables(name, hu, wu, mpp, dims):
     b = m.reshape(hu, KM, wu, KM).astype(np.float32)
     edges = np.stack([b[:, :STRIP].mean((1, 3)), b[:, -STRIP:].mean((1, 3)),
                       b[:, :, :, :STRIP].mean((1, 3)), b[:, :, :, -STRIP:].mean((1, 3))], -1).astype(np.float16)  # N S W E
-    lab = measure.label(m, connectivity=2)
-    n = int(lab.max())
+    ev = evaluation_mask(m, mpp, LP.MASK_DS)   # official lesions: 75 um dilation, holes filled
+    n = int(ev.max())
     if n == 0:
         return dict(empty, edges=edges)
-    props = measure.regionprops(lab)
-    itc = np.array([p.axis_major_length * LP.MASK_DS * mpp < ITC_UM for p in props])
+    itc = np.zeros(n, bool)
+    itc[np.array(itc_labels(ev, mpp, LP.MASK_DS), dtype=int) - 1] = True
+    lab = ev * (m > 0)                          # annotated tumour pixels, labelled by their lesion
     rr, cc = np.nonzero(lab)
     unit = (rr // KM) * wu + (cc // KM)
     key = unit.astype(np.int64) * (n + 1) + lab[rr, cc]

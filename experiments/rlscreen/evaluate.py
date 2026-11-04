@@ -52,10 +52,12 @@ def main():
     for tau in a.taus:
         for follow in (False, True):
             rows[f'teacher tau={tau:g}{" + follow" if follow else ""}'] = agg([play(t, 1.0, 'teacher', tau=tau, follow=follow)[0] for t in test])
-    if a.design == 'full':
-        cfg_path = f'{LP.ROOT}/cascade_cfg.json'
-        if os.path.exists(cfg_path):
-            for b, thr in json.load(open(cfg_path))['L3']['thresholds'].items():
+    cfg_path = f'{LP.ROOT}/cascade_cfg.json'
+    if a.design == 'full' and a.backbone == 'kaiko_vitl14' and os.path.exists(cfg_path):
+        cfg = json.load(open(cfg_path))['L3']
+        # the val thresholds belong to the head they were tuned on; only valid if prep chose the same one
+        if cfg['tag'] == json.load(open(f'{P.units_dir(a.backbone)}/heads.json'))['L3_full'][1]:
+            for b, thr in cfg['thresholds'].items():
                 rows[f'supervised cascade, val budget {b}'] = agg([play(t, 1.0, 'teacher', tau=thr, follow=False)[0] for t in test])
     rows['oracle'] = agg([play(t, 1.0, 'oracle')[0] for t in test])
     name = a.tag or f'baselines_{a.design}_L{a.g_level}_{a.backbone}'

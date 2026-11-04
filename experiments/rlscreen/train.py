@@ -168,7 +168,7 @@ def main():
     tables = load_tables('train', a.design, a.g_level, a.backbone, a.device, trusted_only=P.NON_TRUSTED_SKIP)
     val_tabs = load_tables('val', a.design, a.g_level, a.backbone, a.device)
     print(f'{a.tag}: {len(tables)} train slides ({sum(t.has_tumour for t in tables)} tumour), {len(val_tabs)} val', flush=True)
-    logf = open(f'{out}/train.jsonl', 'a')
+    logf = open(f'{out}/train.jsonl', 'w')
 
     def log(row):
         logf.write(json.dumps(row) + '\n'); logf.flush()

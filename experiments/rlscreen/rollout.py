@@ -22,7 +22,7 @@ def load_tables(split, design, g_level, backbone, device, trusted_only=False):
         if not f.endswith('.npz'):
             continue
         z = np.load(os.path.join(d, f))
-        if str(z['split']) != split or (trusted_only and not bool(z['trust'])):
+        if str(z['split']) != split or (trusted_only and not bool(z['trust'])) or not z['tissue'].any():
             continue
         out.append(SlideTable(f[:-4], z, design, g_level, backbone, device))
     return out
