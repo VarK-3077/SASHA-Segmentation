@@ -51,6 +51,12 @@ class Windows(IterableDataset):
             yield torch.from_numpy(tk.copy()), torch.from_numpy(tg.copy())
 
 
+def fold_of(name, n_folds):
+    """Out-of-fold assignment of a train slide (by its index among all train slides, sorted by name)."""
+    names = sorted(n for n, s in P.split_of().items() if s == 'train')
+    return names.index(name) % n_folds
+
+
 def class_weights(names, level):
     counts = np.zeros(4)
     for n in names:
@@ -115,15 +121,19 @@ def main():
     ap.add_argument('--drop', type=float, default=0.1)
     ap.add_argument('--wd', type=float, default=1e-4)
     ap.add_argument('--name', default='', help='tag suffix for sweep runs')
+    ap.add_argument('--fold', type=int, default=-1, help='out-of-fold training: leave out train slides i %% n_folds == fold')
+    ap.add_argument('--n_folds', type=int, default=5)
     ap.add_argument('--unit_drop', type=float, default=0.0,
                     help='max share of units zeroed per training window (drawn uniformly in [0, max]); val zeroes half')
     a = ap.parse_args()
-    tag = f'L{a.level}{P.backbone_tag()}_{"ctx" if a.ctx else "noctx"}{a.name}_s{a.seed}'
+    tag = f'L{a.level}{P.backbone_tag()}_{"ctx" if a.ctx else "noctx"}{a.name}_s{a.seed}' + (f'_f{a.fold}of{a.n_folds}' if a.fold >= 0 else '')
     out = P.run_dir(tag)
     os.makedirs(out, exist_ok=True)
     json.dump(vars(a), open(f'{out}/args.json', 'w'), indent=1)
     torch.manual_seed(a.seed)
     train, val = names_of('train', a.level), names_of('val', a.level)
+    if a.fold >= 0:
+        train = [n for n in train if fold_of(n, a.n_folds) != a.fold]
     w, counts = class_weights(train, a.level)
     print(f'{tag}: {len(train)} train / {len(val)} val slides, train unit counts {counts.astype(int).tolist()}', flush=True)
     head = ScreenHead(P.tokens_per_unit(a.level), ctx=bool(a.ctx), d=a.d, p_drop=a.drop).to(a.device)

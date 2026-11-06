@@ -18,9 +18,10 @@ def main():
     ap.add_argument('--tau', type=float, default=0.5, help='screen threshold (coarse) / zoom threshold (full) when not swept')
     ap.add_argument('--zoom_taus', type=float, nargs='*', default=[0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7])
     ap.add_argument('--label', default='')
+    ap.add_argument('--split', default='test')
     ap.add_argument('--device', default='cuda:0')
     a = ap.parse_args()
-    test = load_tables('test', a.design, a.g_level, a.backbone, a.device)
+    test = load_tables(a.split, a.design, a.g_level, a.backbone, a.device)
     for tz in a.zoom_taus:
         if a.design == 'coarse':
             actor = lambda ep, tz=tz: T.act(ep, tau=a.tau, follow=True, tau_zoom=tz)

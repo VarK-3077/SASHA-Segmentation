@@ -36,6 +36,9 @@ class SlideTable:
 
     def __init__(self, name, z, design, g_level, backbone, device):
         self.name, self.design, self.g_level, self.backbone, self.device = name, design, g_level, backbone, device
+        oof = f'{P.units_dir(backbone)}/oof/{name}.npz'
+        if os.environ.get('RLSCREEN_OOF') == '1' and str(z['split']) == 'train' and os.path.exists(oof):
+            z = {**{k: z[k] for k in z.files}, **dict(np.load(oof))}   # out-of-fold head outputs (oof.py)
         self.tissue = torch.from_numpy(z['tissue']).to(device)
         self.hu, self.wu = self.tissue.shape
         self.n_units = int(z['tissue'].sum())

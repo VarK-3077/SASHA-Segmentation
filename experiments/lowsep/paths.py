@@ -6,7 +6,7 @@
 import json
 import os
 
-ROOT = '/data2/venkatavks/lowsep'
+ROOT = os.environ.get('LOWSEP_ROOT', '/data2/venkatavks/lowsep')   # vivi: /var/tmp/venkatavks/lowsep
 DATA = '/data1/namanm/dataset/camelyon16'
 EXTRA = '/data2/venkatavks/c16_extra'
 SPLIT_JSON = 'dataset_csv/camelyon16/splits/split_4.json'
