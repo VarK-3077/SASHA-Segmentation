@@ -48,6 +48,9 @@ class Slide:
         self.n = int(self.tissue.sum())
         self.pg = 1 - tab.p_g[..., 0]
         self.p3 = 1 - tab.p3[..., 0]
+        self.p_core = np.where(tab.p3.argmax(-1) == 1, tab.p3[..., 1], 0.0)
+        self.frac = tab.frac
+        self.gt_px = float(tab.tumour_px)
         self.pos = tab.frac > 0
         self.edges = tab.edges > 0
         self.share = tab.share[metric].reshape(self.hu, self.wu)
@@ -56,10 +59,11 @@ class Slide:
 
 
 class SeqEpisode:
-    def __init__(self, s, lam, tz=0.7, S=4.0):
-        self.s, self.lam, self.tz, self.S = s, lam, tz, S
+    def __init__(self, s, lam, tz=0.7, S=4.0, tc=0.99):
+        self.s, self.lam, self.tz, self.S, self.tc = s, lam, tz, S, tc
         self.screened = np.zeros_like(s.tissue)
         self.zoomed = np.zeros_like(s.tissue)
+        self.painted = np.zeros_like(s.tissue)    # routed units the head is sure are core: painted all tumour, not zoomed
         self.front = np.zeros_like(s.tissue)       # moved to the front of the screening queue
         self.follow = np.zeros_like(s.tissue)      # to zoom next round (border following)
         self.round, self.sec, self.done = 0, 0.0, False
@@ -108,15 +112,18 @@ class SeqEpisode:
             q = self.queue()[:n_screen]
             sc.reshape(-1)[q] = True
         hits = sc & (s.p3 >= self.tz)
-        zm = (hits | self.follow) & ~self.zoomed
+        paint = hits & (s.p_core >= self.tc) & ~self.zoomed
+        zm = (hits | self.follow) & ~self.zoomed & ~paint
         ns, nz = int(sc.sum()), int(zm.sum())
+        self.painted |= paint
+        self.zoomed |= paint
         if ns + nz == 0:
             self.done = True
             return 0.0
         self.screened |= sc
         self.zoomed |= zm
         posz = zm & s.pos
-        self.front |= self._neighbours(hits | posz)
+        self.front |= self._neighbours(hits | posz | paint)
         self.follow = self._follow_from(posz)
         sec = ROUND_S + ns * SCREEN_S + nz * ZOOM_S
         self.sec += sec
@@ -156,11 +163,15 @@ class SeqEpisode:
     def summary(self):
         s = self.s
         area = float(s.share_area[self.zoomed].sum()) if s.tumour else 1.0
+        seg = self.zoomed & ~self.painted   # ideal mask: exact on segmented units, all tumour on painted ones
+        inter = s.frac[self.zoomed].sum()
+        pred = s.frac[seg].sum() + self.painted.sum()
+        dice = 2 * inter / (pred + s.gt_px) if s.gt_px > 0 else (1.0 if pred == 0 else 0.0)
         found = None
         if len(s.lesions):
             hit = self.zoomed.reshape(-1)[s.lu_unit]
             found = float(np.mean([hit[s.lu_lesion == l].any() for l in s.lesions]))
-        return dict(tumour=s.tumour, dice=2 * area / (1 + area) if s.tumour else 1.0, found=found,
+        return dict(tumour=s.tumour, dice=dice if s.tumour else 1.0, found=found, painted=self.painted.sum() / max(s.n, 1),
                     screened=self.screened.sum() / max(s.n, 1), zoomed=self.zoomed.sum() / max(s.n, 1),
                     sec=T0 + self.sec, rounds=self.round)
 
@@ -172,8 +183,11 @@ def n_of(ep, action):
 
 # ---------------------------------------------------------------------------------- actors
 
+TC = 0.99   # core painting threshold (set from --tc)
+
+
 def run(s, lam, actor, tz, S):
-    ep = SeqEpisode(s, lam, tz, S)
+    ep = SeqEpisode(s, lam, tz, S, TC)
     while not ep.done:
         if not actor(ep):
             break
@@ -219,7 +233,7 @@ def hindsight(s, lam, tz, S):
     """Best stop round for each constant batch size, knowing the outcome; the best over batch sizes."""
     best = None
     for k in range(1, len(BATCHES) + 1):
-        ep = SeqEpisode(s, lam, tz, S)
+        ep = SeqEpisode(s, lam, tz, S, TC)
         obj, snaps = 0.0, [(0.0, ep.summary())]
         while not ep.done:
             obj += ep.step(n_of(ep, k) if ep.n_left() else 0)
@@ -361,6 +375,7 @@ def main():
     ap.add_argument('--metric', choices=('area', 'lesion', 'mix'), default='mix')
     ap.add_argument('--S', type=float, default=4.0)
     ap.add_argument('--tz', type=float, default=0.7)
+    ap.add_argument('--tc', type=float, default=0.99, help='paint routed units with p(core) >= tc instead of zooming; > 1 = never')
     ap.add_argument('--lam_min', type=float, default=0.01)
     ap.add_argument('--lam_max', type=float, default=1.0)
     ap.add_argument('--updates', type=int, default=400)
@@ -374,6 +389,8 @@ def main():
     ap.add_argument('--split', default='test')
     ap.add_argument('--tag', default='seq')
     a = ap.parse_args()
+    global TC
+    TC = a.tc
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     load = lambda sp, trusted=False: [Slide(t, a.metric) for t in load_tables(sp, 'coarse', a.g_level, a.backbone, 'cpu', trusted_only=trusted)]
