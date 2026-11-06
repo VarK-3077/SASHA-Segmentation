@@ -28,7 +28,10 @@ from experiments.rlscreen.rollout import load_tables
 T0 = 0.56 + 0.12                          # tissue mask + level-6 pass (real coarse runs)
 SCREEN_S, ZOOM_S, ROUND_S = 0.0022, 0.0097, 0.05
 FULL_PER_UNIT = 8.44 / 1030
-BATCHES = (0.01, 0.02, 0.04, 0.08)        # action k > 0 screens BATCHES[k - 1] of the tissue units
+BATCHES = (0.01, 0.02, 0.04, 0.08)        # 'batch' actions: k > 0 screens BATCHES[k - 1] of the tissue units
+THRESH = (0.95, 0.9, 0.8, 0.7, 0.5, 0.3)  # 'thresh' actions: 1 = follow lesions only, k > 1 screens every queued
+                                          # unit with level-6 p >= THRESH[k - 2] (units next to hits always qualify)
+ACTIONS = 'thresh'                        # set from --actions
 R_MAX = 40
 N_FEAT = 32
 NB = np.array([[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]])
@@ -176,9 +179,21 @@ class SeqEpisode:
                     sec=T0 + self.sec, rounds=self.round)
 
 
+def n_actions():
+    return 1 + (len(BATCHES) if ACTIONS == 'batch' else 1 + len(THRESH))
+
+
+def n_above(ep, tau):
+    s = ep.s
+    free = s.tissue & ~ep.screened & ~ep.zoomed
+    return int((free & ((s.pg >= tau) | ep.front)).sum())
+
+
 def n_of(ep, action):
-    """Units to screen for an action; 0 = follow-up only (when nothing is left to screen)."""
-    return min(ep.n_left(), max(2, int(round(BATCHES[action - 1] * ep.s.n))))
+    """Units to screen for a (non-stop) action; 0 = follow lesions only."""
+    if ACTIONS == 'batch':
+        return min(ep.n_left(), max(2, int(round(BATCHES[action - 1] * ep.s.n))))
+    return 0 if action == 1 else n_above(ep, THRESH[action - 2])
 
 
 # ---------------------------------------------------------------------------------- actors
@@ -236,7 +251,7 @@ def hindsight(s, lam, tz, S):
         ep = SeqEpisode(s, lam, tz, S, TC)
         obj, snaps = 0.0, [(0.0, ep.summary())]
         while not ep.done:
-            obj += ep.step(n_of(ep, k) if ep.n_left() else 0)
+            obj += ep.step(min(ep.n_left(), max(2, int(round(BATCHES[k - 1] * ep.s.n)))) if ep.n_left() else 0)
             snaps.append((obj, ep.summary()))
         o, summ = max(snaps, key=lambda x: x[0])
         if best is None or o > best[0]:
@@ -250,7 +265,7 @@ class StopPolicy(nn.Module):
     def __init__(self, h=128):
         super().__init__()
         self.body = nn.Sequential(nn.Linear(N_FEAT, h), nn.Tanh(), nn.Linear(h, h), nn.Tanh())
-        self.pi = nn.Linear(h, 1 + len(BATCHES))
+        self.pi = nn.Linear(h, n_actions())
         self.v = nn.Linear(h, 1)
 
     def forward(self, x):
@@ -259,11 +274,30 @@ class StopPolicy(nn.Module):
 
 
 def mask_of(ep):
-    """Stop is always allowed; batch actions need units left to screen or a follow-up pending."""
-    m = np.ones(1 + len(BATCHES), bool)
-    if ep.n_left() == 0 and not ep.follow.any():
-        m[1:] = False
+    """Stop is always allowed; other actions only when they would do something."""
+    m = np.ones(n_actions(), bool)
+    if ACTIONS == 'batch':
+        if ep.n_left() == 0 and not ep.follow.any():
+            m[1:] = False
+        return m
+    m[1] = bool(ep.follow.any())
+    for k, tau in enumerate(THRESH):
+        m[2 + k] = n_above(ep, tau) > 0
     return m
+
+
+def teacher_action(ep, ts):
+    """The fixed rule as a 'thresh' action sequence: screen to ts, follow lesions, stop."""
+    m = mask_of(ep)
+    if ep.round == 0:
+        k = 2 + THRESH.index(ts)
+        return k if m[k] else 0
+    return 1 if m[1] else 0
+
+
+def teacher_ts(lam):
+    """Warm-start teacher: the fixed rule, deeper when compute is cheap (lam is the compute price)."""
+    return 0.5 if lam < 0.3 else 0.8 if lam < 3 else 0.9
 
 
 def policy_actor(pol, greedy=True, rec=None, rng=None):
@@ -279,7 +313,7 @@ def policy_actor(pol, greedy=True, rec=None, rng=None):
             r = 0.0
             ep.done = True
         else:
-            r = ep.step(n_of(ep, a) if ep.n_left() else 0)
+            r = ep.step(n_of(ep, a) if (ACTIONS == 'thresh' or ep.n_left()) else 0)
         if rec is not None:
             rec.append(dict(x=x[0], m=m[0], a=a, lp=float(d.log_prob(torch.tensor([a]))), v=float(v), r=r))
         return a != 0
@@ -293,6 +327,31 @@ def gae(rs, vs, lam_gae=0.95):
         last = rs[t] + nv - vs[t] + lam_gae * last
         adv[t] = last
     return adv, adv + np.array(vs)
+
+
+def bc(pol, slides, a, rng, log):
+    """Clone the lambda-mapped fixed rule (cross-entropy on its actions, masked like the policy)."""
+    X, M, A = [], [], []
+    for i in range(a.bc_episodes):
+        s = slides[rng.integers(len(slides))]
+        lam = float(np.exp(rng.uniform(np.log(a.lam_min), np.log(a.lam_max))))
+        ep = SeqEpisode(s, lam, a.tz, a.S, TC)
+        ts = teacher_ts(lam)
+        while not ep.done:
+            k = teacher_action(ep, ts)
+            X.append(torch.from_numpy(ep.features())); M.append(torch.from_numpy(mask_of(ep))); A.append(k)
+            if k == 0:
+                break
+            ep.step(n_of(ep, k))
+    X, M, A = torch.stack(X), torch.stack(M), torch.tensor(A)
+    opt = torch.optim.Adam(pol.parameters(), lr=1e-3)
+    for e in range(a.bc_epochs):
+        losses = []
+        for idx in torch.randperm(len(A)).split(256):
+            logits, _ = pol(X[idx])
+            loss = nn.functional.cross_entropy(logits.masked_fill(~M[idx], -1e9), A[idx])
+            opt.zero_grad(); loss.backward(); opt.step(); losses.append(float(loss))
+        log({'update': -1, 'bc_epoch': e, 'bc_loss': float(np.mean(losses)), 'decisions': len(A)})
 
 
 def train(pol, slides, a, rng, log):
@@ -350,7 +409,7 @@ def evaluate(slides, a, pol=None, lams=None):
     if pol is not None:
         for lam in lams:
             rows[f'RL stop, lam={lam:g}'] = agg([run(s, lam, policy_actor(pol), a.tz, a.S).summary() for s in slides])
-    for ts in (0.3, 0.5, 0.7):
+    for ts in (0.3, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95):
         rows[f'fixed screen tau {ts:g}'] = agg([run(s, 1.0, fixed_rule(ts), a.tz, a.S).summary() for s in slides])
     for h in (0.02, 0.05, 0.1):
         rows[f'evidence rule h={h:g}'] = agg([run(s, 1.0, evidence_rule(h), a.tz, a.S).summary() for s in slides])
@@ -385,12 +444,15 @@ def main():
     ap.add_argument('--clip', type=float, default=0.2)
     ap.add_argument('--ent', type=float, default=0.01)
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--actions', choices=('thresh', 'batch'), default='thresh')
+    ap.add_argument('--bc_episodes', type=int, default=4000, help='warm start by cloning the lambda-mapped fixed rule; 0 = none (thresh actions only)')
+    ap.add_argument('--bc_epochs', type=int, default=10)
     ap.add_argument('--baselines_only', action='store_true')
     ap.add_argument('--split', default='test')
     ap.add_argument('--tag', default='seq')
     a = ap.parse_args()
-    global TC
-    TC = a.tc
+    global TC, ACTIONS
+    TC, ACTIONS = a.tc, a.actions
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     load = lambda sp, trusted=False: [Slide(t, a.metric) for t in load_tables(sp, 'coarse', a.g_level, a.backbone, 'cpu', trusted_only=trusted)]
@@ -408,10 +470,16 @@ def main():
 
     def log(row):
         logf.write(json.dumps(row) + '\n'); logf.flush()
-        if row['update'] % 10 == 0:
+        if row['update'] % 10 == 0 or row['update'] < 0:
             print({k: (round(v, 4) if isinstance(v, float) else v) for k, v in row.items()}, flush=True)
 
     pol = StopPolicy()
+    if a.actions == 'thresh' and a.bc_episodes > 0:
+        bc(pol, tr, a, rng, log)
+        torch.save(pol.state_dict(), f'{out}/bc.pt')
+        md = table(evaluate(ev, a, pol), f'Cloned fixed rule (before RL), {name}, {a.split}')
+        open(f'{P.ROOT}/seq_{a.tag}_bc_{a.split}.md', 'w').write(md)
+        print(md, flush=True)
     train(pol, tr, a, rng, log)
     torch.save(pol.state_dict(), f'{out}/final.pt')
     md = table(evaluate(ev, a, pol), f'Sequential coarse screening, {name}, {a.split} (ideal segmenter, est. A100 s)')
