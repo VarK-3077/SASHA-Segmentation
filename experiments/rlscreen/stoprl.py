@@ -108,6 +108,9 @@ class Ep:
     def paint_mask(self, routed, cand, tc):
         return routed & (self.s.p_core >= tc)
 
+    def on_zoom(self, zm):
+        """Real runs segment zm here and fill in the outcome; offline the ideal outcome is already known."""
+
     def step(self, n, tc):
         s = self.s
         sel = np.zeros_like(s.tissue)
@@ -124,6 +127,7 @@ class Ep:
         self.screened |= sel
         self.zoomed |= zm | paint
         self.painted |= paint
+        self.on_zoom(zm)
         posz = zm & s.pos
         self.front |= self._ring(posz | paint | (np.zeros_like(sel) if self.full_design else routed))
         self.follow = self._follow_from(posz, paint)

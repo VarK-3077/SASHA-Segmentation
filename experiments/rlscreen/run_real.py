@@ -29,6 +29,7 @@ from experiments.lowsep.train import names_of
 from experiments.pfa_scannet.data import L5, slide_path, tissue_mask
 from experiments.rlscreen import costs as C
 from experiments.rlscreen import paths as P
+from experiments.rlscreen import stoprl as R
 from experiments.rlscreen import teacher as T
 from experiments.rlscreen.env import SCREEN, ZOOM, observation
 from experiments.rlscreen.paths import R_MAX
@@ -53,7 +54,11 @@ class Models:
         self.pca_g, self.pca_3 = pca(g), pca(3)
         self.seg = TokenNet().to(a.device).eval()
         self.seg.head.load_state_dict(torch.load(a.seg_ckpt, map_location=a.device)['model'])
-        self.policy = None
+        self.policy, self.stopper = None, None
+        if a.actor == 'seq' and a.tag:
+            torch.set_num_threads(1)
+            self.stopper = R.Net()
+            self.stopper.load_state_dict(torch.load(f'{P.run_dir(a.tag)}/{a.ckpt}.pt', map_location='cpu'))
         if a.actor == 'policy':
             args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
             self.state = args['state']
@@ -110,6 +115,41 @@ def seg_units(m, items, probs, outcome):
         outcome[gy, gx] = o[k]
 
 
+class RealEp(R.Ep):
+    """The sequential env with the real level-2 segmenter behind every zoom."""
+    real = None
+
+    def on_zoom(self, zm):
+        pools, m, path, probs, tab = self.real
+        units = [tuple(map(int, u)) for u in np.argwhere(zm)]
+        if not units:
+            return
+        items = pools['seg'].map(read_unit, [(path, r, c) for r, c in units])
+        for i in range(0, len(items), 64):
+            seg_units(m, items[i:i + 64], probs, tab.outcome)
+        o = tab.outcome.cpu().numpy()
+        s = self.s
+        for r, c in units:
+            s.frac[r, c] = o[r, c, 0]
+            s.pos[r, c] = o[r, c, 0] > 0
+            s.edges[r, c] = o[r, c, 1:] > 0
+
+
+def run_seq(a, m, pools, path, tissue, p_g, probs, tab):
+    """Hit-rate rule or trained stopper on the level-3 ranking, in the offline env's own code."""
+    hu, wu = tissue.shape
+    s = SimpleNamespace(tissue=tissue, hu=hu, wu=wu, n=int(tissue.sum()), pg=1 - p_g[..., 0], p3=1 - p_g[..., 0],
+                        p_core=np.where(p_g.argmax(-1) == 1, p_g[..., 1], 0.0), frac=np.zeros((hu, wu)), gt_px=0.0, tumour=False,
+                        pos=np.zeros((hu, wu), bool), edges=np.zeros((hu, wu, 4), bool), share=np.zeros((hu, wu)))
+    ep = RealEp(s, a.lam)
+    ep.real = (pools, m, path, probs, tab)
+    actor = R.hit_rule(a.h, a.paint) if m.stopper is None else R.policy_actor(m.stopper)
+    while not ep.done:
+        if not actor(ep):
+            break
+    return ep.painted, int((ep.zoomed & ~ep.painted).sum()), ep.round
+
+
 def run_slide(name, a, m, pools, out_path):
     path = slide_path(name)
     fd = os.open(path, os.O_RDONLY); os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_DONTNEED); os.close(fd)
@@ -138,7 +178,11 @@ def run_slide(name, a, m, pools, out_path):
     t2 = time.time()
     probs = np.zeros((hu * g, wu * g), np.float32)
     n_screen = n_zoom = 0
-    while st.round < R_MAX:
+    painted = np.zeros((hu, wu), bool)
+    if a.actor == 'seq':
+        painted, n_zoom, rounds = run_seq(a, m, pools, path, tissue, p_g, probs, tab)
+        st.round = rounds
+    while a.actor != 'seq' and st.round < R_MAX:
         free = tab.tissue & ~st.zoomed
         if a.actor == 'teacher':
             stop, act = T.act(st, tau=a.tau, follow=a.follow, outcome=tab.outcome, tau_zoom=a.tau_zoom)
@@ -154,6 +198,12 @@ def run_slide(name, a, m, pools, out_path):
         zm = (act == ZOOM) & free
         if stop or not (sc.any() or zm.any()):
             break
+        if a.paint <= 1:   # sure core units are painted all tumour; their borders count as tumour for following
+            sure = torch.from_numpy((tab.p3.argmax(-1) == 1) & (tab.p3[..., 1] >= a.paint)).to(zm.device) & zm
+            zm = zm & ~sure
+            tab.outcome[sure] = 1.0
+            st.zoomed |= sure
+            painted |= sure.cpu().numpy()
         sc_list = [tuple(map(int, u)) for u in torch.nonzero(sc).tolist()]
         zm_list = [tuple(map(int, u)) for u in torch.nonzero(zm).tolist()]
         f_sc = pools['screen'].map_async(read_screen, [(path, 3, r, c) for r, c in sc_list]) if sc_list else None
@@ -176,10 +226,12 @@ def run_slide(name, a, m, pools, out_path):
         st.spent += C.cost_fraction(a.backbone, len(sc_list), len(zm_list), tab.n_units)
     torch.cuda.synchronize()
     wall = time.time() - t0
+    for r, c in np.argwhere(painted):
+        probs[r * g:(r + 1) * g, c * g:(c + 1) * g] = 1.0
     probs = probs[:ht, :wt]
     probs[~tissue_tok] = 0
     np.savez_compressed(out_path, probs=probs.astype(np.float16), alpha=16, stride=TOK_PX, level=int(np.log2(TOK_PX)), crops=n_zoom, wall=wall)
-    rec = dict(slide=name, units=tab.n_units, screened=n_screen, zoomed=n_zoom, rounds=st.round, wall=wall,
+    rec = dict(slide=name, units=tab.n_units, screened=n_screen, zoomed=n_zoom, painted=int(painted.sum()), rounds=st.round, wall=wall,
                tissue=t1 - t0, global_pass=t2 - t1, rounds_time=wall - (t2 - t0))
     json.dump(rec, open(out_path[:-4] + '_time.json', 'w'))
     print(f"{name}: screened {n_screen} zoomed {n_zoom}/{tab.n_units} in {st.round} rounds, {wall:.1f}s "
@@ -191,13 +243,15 @@ def main():
     ap.add_argument('--design', choices=('coarse', 'full'), required=True)
     ap.add_argument('--g_level', type=int, default=6)
     ap.add_argument('--backbone', default='kaiko_vitl14')
-    ap.add_argument('--actor', choices=('policy', 'teacher'), required=True)
+    ap.add_argument('--actor', choices=('policy', 'teacher', 'seq'), required=True)
     ap.add_argument('--tag', default=None)
     ap.add_argument('--ckpt', default='final')
     ap.add_argument('--lam', type=float, default=1.0)
     ap.add_argument("--tau", type=float, default=0.5)
     ap.add_argument("--tau_zoom", type=float, default=None, help="coarse design: level-3 zoom threshold (default --tau)")
     ap.add_argument('--follow', type=int, default=1)
+    ap.add_argument('--paint', type=float, default=2.0, help='paint sure core units at this p_core; > 1 = never')
+    ap.add_argument('--h', type=float, default=0.02, help='seq without --tag: hit-rate rule threshold')
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--out_dir', required=True)
     ap.add_argument('--device', default='cuda:0')
@@ -207,6 +261,9 @@ def main():
     if a.actor == 'policy':  # the run's own design / views, never the command line's
         args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
         a.design, a.g_level, a.backbone = args['design'], args['g_level'], args['backbone']
+    if a.actor == 'seq':
+        R.CFG.update(design='full', tz=0.7, S=4.0, fp=1.0, tcs=(a.paint,))
+        R.build_actions()
     os.makedirs(a.out_dir, exist_ok=True)
     ctx = get_context('fork')  # pools before CUDA; readers never touch the GPU
     pools = {'screen': ctx.Pool(a.screen_workers), 'seg': ctx.Pool(a.seg_workers)}
