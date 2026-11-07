@@ -5,11 +5,14 @@
 | coarse_z07_paint | 129 | 2.28 | 1.99 | 133 | 13 | 0.796 | 0.550 / 0.756 / 0.905 | 0.857 |
 | full_l2 | 129 | 6.53 | 6.06 | 1030 | 0 | 0.782 | 0.580 / 0.773 / 0.903 | 0.862 |
 | hit_paint | 129 | 2.46 | 2.05 | 81 | 14 | 0.787 | 0.476 / 0.708 / 0.862 | 0.793 |
+| ops_t08_z05_paint | 129 | 2.22 | 1.90 | 161 | 13 | 0.766 | 0.513 / 0.760 / 0.905 | 0.839 |
 | ops_tol01 | 129 | 2.82 | 2.41 | 220 | 0 | 0.796 | 0.561 / 0.773 / 0.903 | 0.871 |
 | ops_tol01_paint | 129 | 2.72 | 2.40 | 207 | 13 | 0.796 | 0.561 / 0.773 / 0.905 | 0.865 |
 | ops_tol05 | 129 | 1.91 | 1.55 | 116 | 0 | 0.764 | 0.505 / 0.743 / 0.903 | 0.832 |
 | ops_tol05_paint | 129 | 1.82 | 1.53 | 104 | 13 | 0.765 | 0.505 / 0.743 / 0.905 | 0.828 |
 | ppo_l02 | 129 | 3.50 | 2.89 | 210 | 14 | 0.793 | 0.540 / 0.773 / 0.905 | 0.854 |
 | ppo_l04 | 129 | 3.02 | 2.49 | 146 | 14 | 0.793 | 0.530 / 0.773 / 0.905 | 0.853 |
+| rl_coarse_long_l02 | 129 | 2.35 | 2.07 | 174 | 12 | 0.783 | 0.521 / 0.773 / 0.905 | 0.845 |
+| rl_coarse_s0_l08 | 129 | 2.40 | 2.17 | 172 | 12 | 0.781 | 0.537 / 0.761 / 0.905 | 0.852 |
 
-vivi GPU 1, test slides on NVMe, one run at a time, cold cache, other users load ~13-30. ops_* settings were chosen on out-of-fold train by a Dice tolerance (ops_select.py): tol01 = screen 0.6, zoom 0.5; tol05 = screen 0.8, zoom 0.7. coarse_z07* zoom tau and ppo_l04 lambda were picked on test; ppo_l02 is the out-of-fold pick. PPO stopper: stop_full_s0, paint p_core >= 0.99.
+vivi GPU 1, test slides on NVMe, one run at a time, cold cache, other users load ~13-30. ops_* chosen on out-of-fold train by Dice tolerance (ops_select.py): tol01 = screen 0.6, zoom 0.5; tol05 = screen 0.8, zoom 0.7; t08_z05 = screen 0.8, zoom 0.5. rl_coarse_*: PPO stopper (seqs_long lam 0.204, seqs_s0 lam 0.849), zoom 0.5, paint 0.99. coarse_z07* zoom tau and ppo_l04 lambda were picked on test.
