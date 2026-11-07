@@ -18,8 +18,8 @@ for d in sorted(glob.glob(f'{R}/*/')):
     w = np.array([x['wall'] for x in t])
     get = lambda k: np.mean([x.get(k, x.get('crops', 0) if k == 'zoomed' else 0) for x in t])
     v = json.load(open(f'{d}clean.json')) if os.path.exists(f'{d}clean.json') else []
-    c = next((r for r in v if 'seed' in r['variant']), None)
-    raw = next((r for r in v if 'seed' not in r['variant']), None)
+    c = next((r for r in v if r['variant'] == 't0.4_seed0.9'), None)
+    raw = next((r for r in v if r['variant'] == 't0.4'), None)
     sc = f"{c['dice']:.3f} | {' / '.join(f'{x:.3f}' for x in c['lesion_dice'])}" if c else '- | -'
     fr = f"{(raw or c)['froc']:.3f}" if c else '-'
     print(f'| {os.path.basename(d[:-1])} | {len(t)} | {w.mean():.2f} | {np.median(w):.2f} | {get("zoomed"):.0f} | {get("painted"):.0f} | {sc} | {fr} |')
