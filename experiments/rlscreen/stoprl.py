@@ -105,14 +105,18 @@ class Ep:
         fp = float((1 - s.frac[self.painted]).sum())
         return rec - CFG['fp'] * fp / (fp + s.gt_px + 1)
 
+    def paint_mask(self, routed, cand, tc):
+        return routed & (self.s.p_core >= tc)
+
     def step(self, n, tc):
         s = self.s
         sel = np.zeros_like(s.tissue)
         if n > 0:
             sel.reshape(-1)[self.queue()[:n]] = True
         routed = sel if self.full_design else sel & (s.p3 >= CFG['tz'])
-        paint = routed & (s.p_core >= tc)
-        zm = (routed | self.follow) & ~self.zoomed & ~paint
+        cand = (routed | self.follow) & ~self.zoomed
+        paint = self.paint_mask(routed, cand, tc)
+        zm = cand & ~paint
         ns, nz, np_ = (0 if self.full_design else n), int(zm.sum()), int(paint.sum())
         if n + nz + np_ == 0:
             self.done = True
@@ -126,7 +130,7 @@ class Ep:
         sec = ROUND_S + ns * SCREEN_S + nz * ZOOM_S
         self.sec += sec
         J0, self.J = self.J, self.quality()
-        rate = (int((sel & posz).sum()) + np_) / max(n, 1)
+        rate = (int((sel & posz).sum()) + int((sel & paint).sum())) / max(n, 1)
         self.hist.append((n, int(routed.sum()), nz, int(posz.sum()), np_, rate))
         self.round += 1
         if self.round >= R_MAX or (len(self.queue()) == 0 and not self.follow.any()):
@@ -188,6 +192,14 @@ class Ep:
 
 def run(s, lam, actor):
     ep = Ep(s, lam)
+    while not ep.done:
+        if not actor(ep):
+            break
+    return ep
+
+
+def run_with(make, s, actor, lam=1.0):
+    ep = make(s, lam)
     while not ep.done:
         if not actor(ep):
             break

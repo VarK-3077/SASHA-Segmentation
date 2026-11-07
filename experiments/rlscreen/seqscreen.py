@@ -56,6 +56,8 @@ class Slide:
         self.gt_px = float(tab.tumour_px)
         self.pos = tab.frac > 0
         self.edges = tab.edges > 0
+        self.edge_frac = tab.edges
+        self.probs = tab.p3
         self.share = tab.share[metric].reshape(self.hu, self.wu)
         self.share_area = tab.share_area.reshape(self.hu, self.wu)
         self.lu_unit, self.lu_lesion, self.lesions = tab.lu_unit, tab.lu_lesion, tab.lesions
