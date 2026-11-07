@@ -25,7 +25,7 @@ while :; do
   b=$(todo | head -8)
   [ -z "$b" ] && break
   rm -f $M/*.tif
-  echo $b | tr ' ' '\n' | xargs -P 4 -I{} cp $S/{}.tif $M/
+  echo $b | tr ' ' '\n' | xargs -P 4 -I{} sh -c "cp $S/{}.tif $M/ 2>/dev/null || cp /data2/venkatavks/c16_extra/{}.tif $M/"
   $PY -m experiments.tokhead.infer --ckpt $CK --out_dir $O --slides $b >> $O/infer.log 2>&1 || { echo infer failed; break; }
   rm -f $M/*.tif
 done

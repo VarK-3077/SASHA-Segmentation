@@ -17,6 +17,7 @@
 import argparse
 import json
 import os
+import sys
 import time
 
 import numpy as np
@@ -499,6 +500,7 @@ def main():
     load = lambda sp, trusted=False: [Slide(t, a.metric) for t in load_tables(sp, a.design, a.g_level, a.backbone, 'cpu', trusted_only=trusted)]
     tr, te = load('train', trusted=P.NON_TRUSTED_SKIP), load('test')
     if a.outcome == 'seg':
+        sys.modules['experiments.rlscreen.stoprl'] = sys.modules[__name__]   # one module, one CFG, when run as a script
         from experiments.rlscreen import lesrl
         CFG['ep'] = lesrl.SegEp
         tr, te = lesrl.attach(tr), lesrl.attach(te)
