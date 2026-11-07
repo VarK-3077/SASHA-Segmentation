@@ -11,24 +11,26 @@ from experiments.rlscreen import paths as P
 ap = argparse.ArgumentParser()
 ap.add_argument('--design', default='coarse')
 ap.add_argument('--runs', nargs='*', default=[])
+ap.add_argument('--rules', nargs='*', default=[''], help='suffixes of the rule files')
+ap.add_argument('--key', default='dice')
 a = ap.parse_args()
-rules = json.load(open(f"{P.ROOT}/stop_rules_{a.design}.json"))
-tr, te = rules['train'], rules['test']
-fam = {'fixed': (tr, te, [k for k in tr if k.startswith('fixed')]),
-       'escalate': (tr, te, [k for k in tr if k.startswith('escalate')]),
-       'hit-rate': (tr, te, [k for k in tr if k.startswith('hit')])}
+fam = {}
+for suf in a.rules:
+    rules = json.load(open(f"{P.ROOT}/stop_rules_{a.design}{suf}.json"))
+    tr, te = rules['train'], rules['test']
+    fam[f'fixed{suf}'] = (tr, te, [k for k in tr if k.startswith('fixed')])
+    fam[f'escalate{suf}'] = (tr, te, [k for k in tr if k.startswith('escalate')])
 for run in a.runs:
     o = json.load(open(f'{P.ROOT}/stop_{run}.json'))
     fam[run] = (o['train'], o['test'], [k for k in o['train'] if k.startswith('RL')])
-    fam[run + ' clone'] = (o['train'], o['test'], [k for k in o['train'] if k.startswith('clone')])
-print('| tolerance | family | picked on train | train Dice | train s | test Dice | L2 | screened | s | s normal | L2 normal |\n|---|---|---|---|---|---|---|---|---|---|---|')
-best = max(t[k]['dice'] for t, _, ks in fam.values() for k in ks)
+print('| tolerance | family | picked on train | train score | train s | test score | test Dice | found | L2 | screened | s | s normal |\n|---|---|---|---|---|---|---|---|---|---|---|---|')
+best = max(t[k][a.key] for t, _, ks in fam.values() for k in ks)
 for tol in (0.01, 0.02, 0.03, 0.05, 0.1):
     for name, (t, e, ks) in fam.items():
-        ok = [k for k in ks if t[k]['dice'] >= best - tol]
+        ok = [k for k in ks if t[k][a.key] >= best - tol]
         if not ok:
-            print(f'| {tol:g} | {name} | none within tolerance | | | | | | | | |')
+            print(f'| {tol:g} | {name} | none within tolerance | | | | | | | | | |')
             continue
         k = min(ok, key=lambda q: t[q]['sec'])
         r = e[k]
-        print(f"| {tol:g} | {name} | {k} | {t[k]['dice']:.3f} | {t[k]['sec']:.2f} | {r['dice']:.3f} | {r['l2']:.3f} | {r['screened']:.3f} | {r['sec']:.2f} | {r['sec_normal']:.2f} | {r['l2_normal']:.3f} |")
+        print(f"| {tol:g} | {name} | {k} | {t[k][a.key]:.3f} | {t[k]['sec']:.2f} | {r[a.key]:.3f} | {r['dice']:.3f} | {r['found']:.3f} | {r['l2']:.3f} | {r['screened']:.3f} | {r['sec']:.2f} | {r['sec_normal']:.2f} |")

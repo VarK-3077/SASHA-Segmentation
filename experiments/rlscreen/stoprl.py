@@ -215,8 +215,11 @@ class Ep:
                     sec=GLOBAL_S[CFG['design']] + self.sec, rounds=self.round)
 
 
+CFG['ep'] = Ep
+
+
 def run(s, lam, actor):
-    ep = Ep(s, lam)
+    ep = CFG['ep'](s, lam)
     while not ep.done:
         if not actor(ep):
             break
@@ -295,7 +298,7 @@ def hit_rule(h, tc, batch=0.02):
 def hindsight(s, lam, tc):
     best = None
     for b in BATCHES:
-        ep = Ep(s, lam)
+        ep = CFG['ep'](s, lam)
         obj, snaps = 0.0, [(0.0, ep.summary())]
         while not ep.done:
             n = ep.count('batch', b)
@@ -356,7 +359,7 @@ def bc(pol, slides, a, rng, log):
     for _ in range(a.bc_episodes):
         s = slides[rng.integers(len(slides))]
         lam = float(np.exp(rng.uniform(np.log(a.lam_min), np.log(a.lam_max))))
-        ep = Ep(s, lam)
+        ep = CFG['ep'](s, lam)
         while not ep.done:
             m = ep.mask()
             if CFG['design'] == 'full':
@@ -431,7 +434,7 @@ def agg(res):
     tum = [r for r in res if r['tumour']]
     nor = [r for r in res if not r['tumour']]
     m = lambda k, rs: float(np.mean([r[k] for r in rs if r[k] is not None])) if rs else float('nan')
-    return dict(dice=m('dice', tum), found=m('found', tum), screened=m('screened', res), l2=m('l2', res), painted=m('painted', res),
+    return dict(j=m('j', res) if 'j' in res[0] else float('nan'), dice=m('dice', tum), found=m('found', tum), screened=m('screened', res), l2=m('l2', res), painted=m('painted', res),
                 sec=m('sec', res), sec_normal=m('sec', nor), l2_normal=m('l2', nor), fp_normal=m('fp_units', nor), rounds=m('rounds', res))
 
 
@@ -473,6 +476,8 @@ def main():
     ap.add_argument('--tcs', type=float, nargs='+', default=[0.99], help='core thresholds the policy may pick; 2 = never paint')
     ap.add_argument('--fp', type=float, default=1.0, help='weight of the false-positive term in J')
     ap.add_argument('--cluster', type=int, default=0, help='add clusters of the global score map to the state')
+    ap.add_argument('--outcome', choices=('ideal', 'seg'), default='ideal', help='seg: real segmenter outcomes and the lesion-aware quality (lesrl.py)')
+    ap.add_argument('--rules_tag', default='')
     ap.add_argument('--lam_min', type=float, default=0.1)
     ap.add_argument('--lam_max', type=float, default=30.0)
     ap.add_argument('--updates', type=int, default=400)
@@ -493,13 +498,17 @@ def main():
     rng = np.random.default_rng(a.seed)
     load = lambda sp, trusted=False: [Slide(t, a.metric) for t in load_tables(sp, a.design, a.g_level, a.backbone, 'cpu', trusted_only=trusted)]
     tr, te = load('train', trusted=P.NON_TRUSTED_SKIP), load('test')
+    if a.outcome == 'seg':
+        from experiments.rlscreen import lesrl
+        CFG['ep'] = lesrl.SegEp
+        tr, te = lesrl.attach(tr), lesrl.attach(te)
     for s in tr + te:
         s.cluster = cluster_stats(s)
     print(f'{a.tag}: {a.design}, {len(tr)} train slides ({sum(s.tumour for s in tr)} tumour), OOF {os.environ.get("RLSCREEN_OOF") == "1"}, {len(CFG["acts"])} actions', flush=True)
     if a.rules_only:
         out = {'train': rule_rows(tr), 'test': rule_rows(te), 'hindsight_test': {f'hindsight lam={l:g}': agg([hindsight(s, l, 0.99) for s in te]) for l in (0.3, 1, 3)}}
-        json.dump(out, open(f'{P.ROOT}/stop_rules_{a.design}.json', 'w'), indent=1)
-        open(f'{P.ROOT}/stop_rules_{a.design}.md', 'w').write(table(out['test'], f'rules, {a.design}, test') + '\n\n' + table(out['hindsight_test'], 'hindsight, test'))
+        json.dump(out, open(f'{P.ROOT}/stop_rules_{a.design}{a.rules_tag}.json', 'w'), indent=1)
+        open(f'{P.ROOT}/stop_rules_{a.design}{a.rules_tag}.md', 'w').write(table(out['test'], f'rules, {a.design}, test') + '\n\n' + table(out['hindsight_test'], 'hindsight, test'))
         print('rules done', flush=True)
         return
     run_dir = P.run_dir(a.tag)
