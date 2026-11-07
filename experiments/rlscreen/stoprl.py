@@ -25,15 +25,28 @@ import torch.nn as nn
 
 from experiments.rlscreen import paths as P
 from experiments.rlscreen.rollout import load_tables
+from scipy import ndimage
+
 from experiments.rlscreen.seqscreen import FULL_PER_UNIT, NB, ROUND_S, SCREEN_S, ZOOM_S, Slide, gae, phi
 
 GLOBAL_S = {'full': 0.56 + 1.52, 'coarse': 0.56 + 0.12}   # real runs: tissue + whole-slide pass
 BATCHES = (0.01, 0.02, 0.04, 0.08)
-THRESH = (0.95, 0.9, 0.8, 0.7, 0.5, 0.3)
+THRESH = (0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.3)
 R_MAX = 40
 FLOOR = 0.02         # full: units below this p are never taken from the ranking
 N_FEAT = 34
-CFG = dict(design='full', tz=0.7, S=4.0, fp=1.0, tcs=(0.99,), acts=[])
+N_CLUSTER = 8
+CFG = dict(design='full', tz=0.7, S=4.0, fp=1.0, tcs=(0.99,), acts=[], cluster=False)
+
+
+def cluster_stats(s):
+    """Clusters of the global score map: tumour clusters, false positives scatter."""
+    out = []
+    for t in (0.5, 0.9):
+        lab, k = ndimage.label((s.pg >= t) & s.tissue)
+        sizes = np.bincount(lab.ravel())[1:] if k else np.zeros(1)
+        out += [sizes.max() / max(s.n, 1), np.log1p(sizes.max()) / 6, np.log1p(k) / 6, (sizes >= 4).sum() / max(k, 1)]
+    return np.asarray(out, np.float32)
 
 
 def build_actions():
@@ -51,6 +64,7 @@ class Ep:
         self.front = np.zeros_like(s.tissue)
         self.follow = np.zeros_like(s.tissue)
         self.round, self.sec, self.done, self.stopping = 0, 0.0, False, False
+        self.stage, self.stage_pos = 0, 0         # escalation rule: current stage, positives found in it
         self.J = 0.0 if s.tumour else 1.0
         self.hist = []                             # per round: taken, routed, zoomed, positives, painted, hit rate
 
@@ -111,11 +125,16 @@ class Ep:
     def on_zoom(self, zm):
         """Real runs segment zm here and fill in the outcome; offline the ideal outcome is already known."""
 
+    def on_screen(self, sel):
+        """Real runs read and score sel at level 3 here; offline the scores are already known."""
+
     def step(self, n, tc):
         s = self.s
         sel = np.zeros_like(s.tissue)
         if n > 0:
             sel.reshape(-1)[self.queue()[:n]] = True
+        if not self.full_design:
+            self.on_screen(sel)
         routed = sel if self.full_design else sel & (s.p3 >= CFG['tz'])
         cand = (routed | self.follow) & ~self.zoomed
         paint = self.paint_mask(routed, cand, tc)
@@ -136,6 +155,7 @@ class Ep:
         J0, self.J = self.J, self.quality()
         rate = (int((sel & posz).sum()) + int((sel & paint).sum())) / max(n, 1)
         self.hist.append((n, int(routed.sum()), nz, int(posz.sum()), np_, rate))
+        self.stage_pos += int(posz.sum()) + np_
         self.round += 1
         if self.round >= R_MAX or (len(self.queue()) == 0 and not self.follow.any()):
             self.done = True
@@ -177,7 +197,8 @@ class Ep:
              nxt.mean() if len(nxt) else 0.0, (tot[3] + tot[4]) / max(tot[0], 1), last[5], (tot[3] + tot[4]) / max(tot[2] + tot[4], 1),
              last[3] / n, tot[3] / n, np.log1p(tot[3]) / 6, self.follow.sum() / n, np.log1p(self.follow.sum()) / 6, float(tot[3] + tot[4] > 0),
              since / R_MAX, last[1] / max(last[0], 1), (self.front & free).sum() / n, self.painted.sum() / n, (s.p_core[free] >= 0.9).sum() / n]
-        return np.asarray(f, np.float32)
+        f = np.asarray(f, np.float32)
+        return np.concatenate([f, s.cluster]) if CFG['cluster'] else f
 
     def summary(self):
         s = self.s
@@ -226,6 +247,34 @@ def fixed_rule(t, tc):
     return act
 
 
+def next_stage(ep, stages):
+    """Escalation: index of the stage to screen now, or None to stop going deeper."""
+    if ep.round == 0:
+        return 0
+    if ep.stage_pos == 0 or ep.stage + 1 >= len(stages):
+        return None
+    return ep.stage + 1
+
+
+def escalate_rule(stages, tc):
+    """Screen down to stages[0]; go on to the next stage only if the last one found tumour."""
+    def act(ep):
+        if ep.follow.any():
+            ep.step(0, 2.0)
+            return True
+        k = next_stage(ep, stages)
+        while k is not None:
+            n = ep.count('thresh', stages[k])
+            ep.stage = k
+            if n > 0:
+                ep.stage_pos = 0
+                ep.step(n, tc)
+                return True
+            k = k + 1 if k + 1 < len(stages) else None
+        return False
+    return act
+
+
 def hit_step(ep, h, tc, batch):
     """One round of the hit-rate rule; False when finished. Stops taking units after a batch below h."""
     if not ep.stopping and len(ep.queue()) > 0:
@@ -263,7 +312,7 @@ def hindsight(s, lam, tc):
 class Net(nn.Module):
     def __init__(self, h=128):
         super().__init__()
-        self.body = nn.Sequential(nn.Linear(N_FEAT, h), nn.Tanh(), nn.Linear(h, h), nn.Tanh())
+        self.body = nn.Sequential(nn.Linear(N_FEAT + (N_CLUSTER if CFG['cluster'] else 0), h), nn.Tanh(), nn.Linear(h, h), nn.Tanh())
         self.pi = nn.Linear(h, len(CFG['acts']))
         self.v = nn.Linear(h, 1)
 
@@ -296,8 +345,8 @@ def teacher_h(lam):
     return 0.02 if lam < 0.5 else 0.1 if lam < 3 else 0.3 if lam < 10 else 0.5
 
 
-def teacher_t(lam):
-    return 0.5 if lam < 0.3 else 0.8 if lam < 3 else 0.9
+def teacher_stages(lam):
+    return (0.9, 0.8, 0.7, 0.6) if lam < 0.5 else (0.9, 0.8) if lam < 3 else (0.9,)
 
 
 def bc(pol, slides, a, rng, log):
@@ -315,11 +364,19 @@ def bc(pol, slides, a, rng, log):
                     k = action_index('batch', 0.02, tc)
                 else:
                     k = 1 if m[1] else 0
-            elif ep.round == 0:
-                k = action_index('thresh', teacher_t(lam), tc)
-                k = k if m[k] else 0
+            elif m[1]:
+                k = 1
             else:
-                k = 1 if m[1] else 0
+                k, st = 0, teacher_stages(lam)
+                nx = next_stage(ep, st)
+                while nx is not None:
+                    i = action_index('thresh', st[nx], tc)
+                    ep.stage = nx
+                    if m[i]:
+                        k = i
+                        ep.stage_pos = 0
+                        break
+                    nx = nx + 1 if nx + 1 < len(st) else None
             X.append(torch.from_numpy(ep.features())); M.append(torch.from_numpy(m)); A.append(k)
             ep.act(k)
             if k == 0:
@@ -387,6 +444,9 @@ def rule_rows(slides):
             rows[f'fixed t={t:g}, {lab}'] = agg([run(s, 1.0, fixed_rule(t, tc)).summary() for s in slides])
         for h in (0.02, 0.05, 0.1, 0.2, 0.3, 0.5):
             rows[f'hit h={h:g}, {lab}'] = agg([run(s, 1.0, hit_rule(h, tc)).summary() for s in slides])
+        if CFG['design'] == 'coarse':
+            for st in ((0.9, 0.8, 0.7, 0.6), (0.9, 0.7, 0.6), (0.9, 0.6), (0.95, 0.9, 0.8, 0.7, 0.6), (0.8, 0.6), (0.9, 0.8, 0.7, 0.6, 0.5), (0.9, 0.5)):
+                rows[f'escalate {st}, {lab}'] = agg([run(s, 1.0, escalate_rule(st, tc)).summary() for s in slides])
     return rows
 
 
@@ -412,6 +472,7 @@ def main():
     ap.add_argument('--tz', type=float, default=0.7)
     ap.add_argument('--tcs', type=float, nargs='+', default=[0.99], help='core thresholds the policy may pick; 2 = never paint')
     ap.add_argument('--fp', type=float, default=1.0, help='weight of the false-positive term in J')
+    ap.add_argument('--cluster', type=int, default=0, help='add clusters of the global score map to the state')
     ap.add_argument('--lam_min', type=float, default=0.1)
     ap.add_argument('--lam_max', type=float, default=30.0)
     ap.add_argument('--updates', type=int, default=400)
@@ -426,12 +487,14 @@ def main():
     ap.add_argument('--rules_only', action='store_true')
     ap.add_argument('--tag', default='stoprl')
     a = ap.parse_args()
-    CFG.update(design=a.design, tz=a.tz, S=a.S, fp=a.fp, tcs=tuple(a.tcs))
+    CFG.update(design=a.design, tz=a.tz, S=a.S, fp=a.fp, tcs=tuple(a.tcs), cluster=bool(a.cluster))
     build_actions()
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     load = lambda sp, trusted=False: [Slide(t, a.metric) for t in load_tables(sp, a.design, a.g_level, a.backbone, 'cpu', trusted_only=trusted)]
     tr, te = load('train', trusted=P.NON_TRUSTED_SKIP), load('test')
+    for s in tr + te:
+        s.cluster = cluster_stats(s)
     print(f'{a.tag}: {a.design}, {len(tr)} train slides ({sum(s.tumour for s in tr)} tumour), OOF {os.environ.get("RLSCREEN_OOF") == "1"}, {len(CFG["acts"])} actions', flush=True)
     if a.rules_only:
         out = {'train': rule_rows(tr), 'test': rule_rows(te), 'hindsight_test': {f'hindsight lam={l:g}': agg([hindsight(s, l, 0.99) for s in te]) for l in (0.3, 1, 3)}}

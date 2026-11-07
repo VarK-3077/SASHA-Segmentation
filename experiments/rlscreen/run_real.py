@@ -134,20 +134,41 @@ class RealEp(R.Ep):
             s.pos[r, c] = o[r, c, 0] > 0
             s.edges[r, c] = o[r, c, 1:] > 0
 
+    def on_screen(self, sel):
+        pools, m, path, probs, tab = self.real
+        units = [tuple(map(int, u)) for u in np.argwhere(sel)]
+        if not units:
+            return
+        items = pools['screen'].map(read_screen, [(path, 3, r, c) for r, c in units])
+        s = self.s
+        for i in range(0, len(items), 128):
+            v = screen_units(m, items[i:i + 128])[:, -4:].cpu().numpy()
+            for k, (r, c, _) in enumerate(items[i:i + 128]):
+                s.p3[r, c] = 1 - v[k, 0]
+                s.p_core[r, c] = v[k, 1] if v[k].argmax() == 1 else 0.0
+
 
 def run_seq(a, m, pools, path, tissue, p_g, probs, tab):
     """Hit-rate rule or trained stopper on the level-3 ranking, in the offline env's own code."""
     hu, wu = tissue.shape
-    s = SimpleNamespace(tissue=tissue, hu=hu, wu=wu, n=int(tissue.sum()), pg=1 - p_g[..., 0], p3=1 - p_g[..., 0],
-                        p_core=np.where(p_g.argmax(-1) == 1, p_g[..., 1], 0.0), frac=np.zeros((hu, wu)), gt_px=0.0, tumour=False,
+    full = a.design == 'full'
+    s = SimpleNamespace(tissue=tissue, hu=hu, wu=wu, n=int(tissue.sum()), pg=1 - p_g[..., 0], p3=1 - p_g[..., 0] if full else np.zeros((hu, wu)),
+                        p_core=np.where(p_g.argmax(-1) == 1, p_g[..., 1], 0.0) if full else np.zeros((hu, wu)), frac=np.zeros((hu, wu)), gt_px=0.0, tumour=False,
                         pos=np.zeros((hu, wu), bool), edges=np.zeros((hu, wu, 4), bool), share=np.zeros((hu, wu)))
     ep = RealEp(s, a.lam)
     ep.real = (pools, m, path, probs, tab)
-    actor = R.hit_rule(a.h, a.paint) if m.stopper is None else R.policy_actor(m.stopper)
+    if R.CFG['cluster']:
+        s.cluster = R.cluster_stats(s)
+    if m.stopper is not None:
+        actor = R.policy_actor(m.stopper)
+    elif a.stages:
+        actor = R.escalate_rule(tuple(a.stages), a.paint)
+    else:
+        actor = R.hit_rule(a.h, a.paint)
     while not ep.done:
         if not actor(ep):
             break
-    return ep.painted, int((ep.zoomed & ~ep.painted).sum()), ep.round
+    return ep.painted, int((ep.zoomed & ~ep.painted).sum()), ep.round, int(ep.screened.sum())
 
 
 def run_slide(name, a, m, pools, out_path):
@@ -180,7 +201,7 @@ def run_slide(name, a, m, pools, out_path):
     n_screen = n_zoom = 0
     painted = np.zeros((hu, wu), bool)
     if a.actor == 'seq':
-        painted, n_zoom, rounds = run_seq(a, m, pools, path, tissue, p_g, probs, tab)
+        painted, n_zoom, rounds, n_screen = run_seq(a, m, pools, path, tissue, p_g, probs, tab)
         st.round = rounds
     while a.actor != 'seq' and st.round < R_MAX:
         free = tab.tissue & ~st.zoomed
@@ -252,6 +273,8 @@ def main():
     ap.add_argument('--follow', type=int, default=1)
     ap.add_argument('--paint', type=float, default=2.0, help='paint sure core units at this p_core; > 1 = never')
     ap.add_argument('--h', type=float, default=0.02, help='seq without --tag: hit-rate rule threshold')
+    ap.add_argument('--stages', type=float, nargs='*', default=None, help='seq: escalation rule stages')
+    ap.add_argument('--cluster', type=int, default=0)
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--out_dir', required=True)
     ap.add_argument('--device', default='cuda:0')
@@ -262,7 +285,7 @@ def main():
         args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
         a.design, a.g_level, a.backbone = args['design'], args['g_level'], args['backbone']
     if a.actor == 'seq':
-        R.CFG.update(design='full', tz=0.7, S=4.0, fp=1.0, tcs=(a.paint,))
+        R.CFG.update(design=a.design, tz=a.tau_zoom or 0.7, S=4.0, fp=1.0, tcs=(a.paint,), cluster=bool(a.cluster))
         R.build_actions()
     os.makedirs(a.out_dir, exist_ok=True)
     ctx = get_context('fork')  # pools before CUDA; readers never touch the GPU
