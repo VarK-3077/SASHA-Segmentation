@@ -23,6 +23,7 @@ def attach(slides):
         s.pos = z['seg_frac'] > 0
         s.edges = z['seg_edges'] > 0
         s.edge_frac = z['seg_edges']
+        s.seg_frac = z['seg_frac']
         s.lu_unit_s, s.lu_lesion_s, s.lu_tp, s.lesion_px = z['lu_unit'], z['lu_lesion'], z['lu_tp'].astype(np.float64), z['lesion_px'].astype(np.float64)
         s.les = np.flatnonzero(s.lesion_px)
         s.tumour = s.gt_total > 0

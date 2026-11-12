@@ -37,7 +37,7 @@ R_MAX = 40
 FLOOR = 0.02         # full: units below this p are never taken from the ranking
 N_FEAT = 34
 N_CLUSTER = 8
-CFG = dict(design='full', tz=0.7, S=4.0, fp=1.0, tcs=(0.99,), acts=[], cluster=False)
+CFG = dict(design='full', tz=0.7, S=4.0, fp=1.0, tcs=(0.99,), acts=[], cluster=False, follow=True)
 
 
 def cluster_stats(s):
@@ -150,7 +150,7 @@ class Ep:
         self.on_zoom(zm)
         posz = zm & s.pos
         self.front |= self._ring(posz | paint | (np.zeros_like(sel) if self.full_design else routed))
-        self.follow = self._follow_from(posz, paint)
+        self.follow = self._follow_from(posz, paint) if CFG['follow'] else np.zeros_like(posz)   # border tracing on / off
         sec = ROUND_S + ns * SCREEN_S + nz * ZOOM_S
         self.sec += sec
         J0, self.J = self.J, self.quality()

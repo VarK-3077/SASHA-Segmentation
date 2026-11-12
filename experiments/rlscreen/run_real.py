@@ -29,6 +29,8 @@ from experiments.lowsep.train import names_of
 from experiments.pfa_scannet.data import L5, slide_path, tissue_mask
 from experiments.rlscreen import costs as C
 from experiments.rlscreen import paths as P
+from experiments.rlscreen import escalate as E
+from experiments.rlscreen import qstop as Q
 from experiments.rlscreen import stoprl as R
 from experiments.rlscreen import teacher as T
 from experiments.rlscreen.env import SCREEN, ZOOM, observation
@@ -54,7 +56,11 @@ class Models:
         self.pca_g, self.pca_3 = pca(g), pca(3)
         self.seg = TokenNet().to(a.device).eval()
         self.seg.head.load_state_dict(torch.load(a.seg_ckpt, map_location=a.device)['model'])
-        self.policy, self.stopper = None, None
+        self.policy, self.stopper, self.critic = None, None, None
+        if a.actor == 'seq' and a.critic:
+            self.critic = Q.CoreNet()
+            self.critic.load_state_dict(torch.load(a.critic, map_location='cpu'))
+            Q.Ep2.critic, Q.Ep2.eps = self.critic, a.eps
         if a.actor == 'seq' and a.tag:
             torch.set_num_threads(1)
             self.stopper = R.Net()
@@ -130,9 +136,10 @@ class RealEp(R.Ep):
         o = tab.outcome.cpu().numpy()
         s = self.s
         for r, c in units:
-            s.frac[r, c] = o[r, c, 0]
+            s.frac[r, c] = s.seg_frac[r, c] = o[r, c, 0]
             s.pos[r, c] = o[r, c, 0] > 0
             s.edges[r, c] = o[r, c, 1:] > 0
+            s.edge_frac[r, c] = o[r, c, 1:]
 
     def on_screen(self, sel):
         pools, m, path, probs, tab = self.real
@@ -145,7 +152,12 @@ class RealEp(R.Ep):
             v = screen_units(m, items[i:i + 128])[:, -4:].cpu().numpy()
             for k, (r, c, _) in enumerate(items[i:i + 128]):
                 s.p3[r, c] = 1 - v[k, 0]
+                s.probs[r, c] = v[k]
                 s.p_core[r, c] = v[k, 1] if v[k].argmax() == 1 else 0.0
+
+
+class RealCriticEp(RealEp, Q.Ep2):
+    """Real env plus interior painting by the core critic (qstop.Ep2.paint_mask)."""
 
 
 def run_seq(a, m, pools, path, tissue, p_g, probs, tab):
@@ -154,13 +166,19 @@ def run_seq(a, m, pools, path, tissue, p_g, probs, tab):
     full = a.design == 'full'
     s = SimpleNamespace(tissue=tissue, hu=hu, wu=wu, n=int(tissue.sum()), pg=1 - p_g[..., 0], p3=1 - p_g[..., 0] if full else np.zeros((hu, wu)),
                         p_core=np.where(p_g.argmax(-1) == 1, p_g[..., 1], 0.0) if full else np.zeros((hu, wu)), frac=np.zeros((hu, wu)), gt_px=0.0, tumour=False,
-                        pos=np.zeros((hu, wu), bool), edges=np.zeros((hu, wu, 4), bool), share=np.zeros((hu, wu)))
-    ep = RealEp(s, a.lam)
+                        pos=np.zeros((hu, wu), bool), edges=np.zeros((hu, wu, 4), bool), share=np.zeros((hu, wu)),
+                        edge_frac=np.zeros((hu, wu, 4), np.float32), seg_frac=np.zeros((hu, wu)),
+                        probs=p_g.copy() if full else np.zeros((hu, wu, 4), np.float32))
+    ep = (RealCriticEp if m.critic is not None else RealEp)(s, a.lam)
     ep.real = (pools, m, path, probs, tab)
     if R.CFG['cluster']:
         s.cluster = R.cluster_stats(s)
     if m.stopper is not None:
         actor = R.policy_actor(m.stopper)
+    elif a.rule == 'fixed':
+        actor = R.fixed_rule(a.tau, a.paint)
+    elif a.rule == 'esc':
+        actor = E.rule(tuple(a.stages), a.minpos, a.minfrac, a.mode, tc=a.paint)
     elif a.stages:
         actor = R.escalate_rule(tuple(a.stages), a.paint)
     else:
@@ -275,6 +293,12 @@ def main():
     ap.add_argument('--h', type=float, default=0.02, help='seq without --tag: hit-rate rule threshold')
     ap.add_argument('--stages', type=float, nargs='*', default=None, help='seq: escalation rule stages')
     ap.add_argument('--cluster', type=int, default=0)
+    ap.add_argument('--rule', choices=('fixed', 'esc'), default=None, help='seq: fixed threshold (--tau) or escalation (--stages ...)')
+    ap.add_argument('--minpos', type=int, default=1)
+    ap.add_argument('--minfrac', type=float, default=0.0)
+    ap.add_argument('--mode', choices=('last', 'any'), default='last')
+    ap.add_argument('--critic', default=None, help='seq: core critic weights (interior painting)')
+    ap.add_argument('--eps', type=float, default=0.02)
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--out_dir', required=True)
     ap.add_argument('--device', default='cuda:0')
@@ -285,7 +309,7 @@ def main():
         args = json.load(open(f'{P.run_dir(a.tag)}/args.json'))
         a.design, a.g_level, a.backbone = args['design'], args['g_level'], args['backbone']
     if a.actor == 'seq':
-        R.CFG.update(design=a.design, tz=a.tau_zoom or 0.7, S=4.0, fp=1.0, tcs=(a.paint,), cluster=bool(a.cluster))
+        R.CFG.update(design=a.design, tz=a.tau_zoom or 0.7, S=4.0, fp=1.0, tcs=(a.paint,), cluster=bool(a.cluster), follow=bool(a.follow))
         R.build_actions()
     os.makedirs(a.out_dir, exist_ok=True)
     ctx = get_context('fork')  # pools before CUDA; readers never touch the GPU

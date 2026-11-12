@@ -68,7 +68,8 @@ class Ep2(R.Ep):
             ev += ef * sg; cnt += sg; mn = np.where(sg, np.minimum(mn, ef), mn)
             pa += self._shift(self.painted, dr, dc)
         probe = seg & (s.p_core >= 0.5)
-        solid = float((s.frac[probe] >= 0.95).mean()) if probe.any() else 0.5
+        seg_frac = getattr(s, 'seg_frac', s.frac)   # what the segmenter showed, never the ground truth
+        solid = float((seg_frac[probe] >= 0.95).mean()) if probe.any() else 0.5
         known = self.screened
         idx = np.flatnonzero(cand)
         r = idx // s.wu, idx % s.wu
