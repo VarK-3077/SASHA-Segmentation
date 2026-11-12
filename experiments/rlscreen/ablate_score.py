@@ -7,6 +7,7 @@ import argparse
 import glob
 import json
 import os
+import pickle
 from functools import partial
 from multiprocessing import Pool
 
@@ -19,15 +20,15 @@ CLEAN, RAW = 't0.4_seed0.9', 't0.4'
 
 
 def per_slide(maps, workers):
-    out = f'{maps}/per_slide.json'
+    out = f'{maps}/per_slide.pkl'
     if os.path.exists(out):
-        return json.load(open(out))
+        return pickle.load(open(out, 'rb'))
     names = sorted(os.path.basename(x)[:-4] for x in glob.glob(f'{maps}/test_*.npz'))
     res = {}
     with Pool(workers) as pool:
         for n, r in pool.imap_unordered(partial(CS.run_one, maps=maps, var=VAR), names):
             res[n] = r
-    json.dump(res, open(out, 'w'))
+    pickle.dump(res, open(out, 'wb'))
     return res
 
 
