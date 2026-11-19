@@ -130,8 +130,14 @@ def ppo(data, lam, a, seed, log=None, veto=0.0):
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
     nets = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1]).to(data[0]['x6'].device)
+    ref = None
     if a.init != 'none':
         clone(nets, data, seed=seed, veto=veto)
+        if a.kl > 0:      # frozen copy of the clone: the policy pays a.kl x KL(policy || clone) for drifting from it
+            ref = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1]).to(data[0]['x6'].device)
+            ref.load_state_dict(nets.state_dict())
+            for q in ref.parameters():
+                q.requires_grad_(False)
     opt = torch.optim.Adam([dict(params=list(nets.pi6.parameters()) + list(nets.pi3.parameters()), lr=a.lr),
                             dict(params=list(nets.v6.parameters()) + list(nets.v3.parameters()), lr=a.critic_lr)])
     tum = [i for i, d in enumerate(data) if d['s'].tumour]
@@ -155,6 +161,11 @@ def ppo(data, lam, a, seed, log=None, veto=0.0):
             ent = -(p6 * p6.log() + (1 - p6) * (1 - p6).log()).mean() - (ls3.exp() * ls3).sum(1).mean()
             vl = ((nets.v6(cat['x6'])[:, 0] - cat['r6'] / a.vscale) ** 2).mean() + ((nets.v3(cat['x3'])[:, 0] - cat['r3'] / a.vscale) ** 2).mean()
             loss = surr(lp6, cat['lp6'], adv6) + surr(lp3, cat['lp3'], adv3) + vl - a.ent * ent
+            if ref is not None:
+                r6 = torch.sigmoid(ref.pi6(cat['x6'])[:, 0]).clamp(1e-6, 1 - 1e-6)
+                rs3 = torch.log_softmax(ref.pi3(cat['x3']), 1)
+                kl = (p6 * (p6 / r6).log() + (1 - p6) * ((1 - p6) / (1 - r6)).log()).mean() + (ls3.exp() * (ls3 - rs3)).sum(1).mean()
+                loss = loss + a.kl * kl
             opt.zero_grad(); loss.backward()
             nn.utils.clip_grad_norm_(nets.parameters(), 1.0)
             opt.step()
@@ -203,6 +214,7 @@ def main():
     ap.add_argument('--critic_lr', type=float, default=1e-3)
     ap.add_argument('--clip', type=float, default=0.2)
     ap.add_argument('--ent', type=float, default=0.003)
+    ap.add_argument('--kl', type=float, default=0.0, help='weight of KL(policy || warm-start clone); 0 = no anchor')
     ap.add_argument('--vscale', type=float, default=0.05)
     ap.add_argument('--log_every', type=int, default=100)
     ap.add_argument('--w_les', type=float, default=W_LES, help='reward per lesion detected')
