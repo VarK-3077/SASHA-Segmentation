@@ -111,12 +111,37 @@ def new_state(m, tissue, p_g):
     return s
 
 
-def run_ppo(a, m, pools, path, tissue, p_g, probs, tab):
-    """The PPO policy's greedy play: L6 policy picks the L3 reads, L3 policy leaves / segments / paints, then tracing."""
+def attach_policy(m, spec, tok3, device):
+    """Loads a PPO policy (SEARCH@RUN, saved by rl3.py) and the token-level L3 head onto run_real's models and makes
+    every L3 screen feed both L3 heads. Returns the saved run."""
+    import pickle
     from experiments.rlpolicy import rl3
+    from experiments.rlpolicy import where as W
+    name, rk = spec.split('@')
+    run = pickle.load(open(f'{W.ROOT}/search/{name}/res.pkl', 'rb'))['runs'][rk]
+    assert not run['tok6'], 'this loader does not set up the second L6 head'
+    m.tok3, m.key, m.tok6, m.run = load_head(tok3, -1, device), 't_top16', None, run
+    m.nets = rl3.Nets(*(v.shape[1] for v in (run['nets']['pi6.0.weight'], run['nets']['pi3.0.weight'])))
+    m.nets.load_state_dict(run['nets'])
+    RR.RealEp.on_screen = on_screen
+    return run
+
+
+def run_ppo(a, m, pools, path, tissue, p_g, probs, tab):
+    """The PPO policy in run_real's harness (level-2 token head behind every zoom)."""
     s = new_state(m, tissue, p_g)
     io = RR.RealEp(s, 1.0)
     io.real = (pools, m, path, probs, tab)
+    STASH['stage'] = 1
+    return ppo_play(io, s, m)
+
+
+def ppo_play(io, s, m):
+    """The PPO policy's greedy play on any env whose on_screen / on_zoom do the reads and fill the slide state (so
+    another segmenter can sit behind on_zoom): the L6 policy picks the L3 reads, the L3 policy leaves / segments /
+    paints, then border tracing from what the segmenter returned. -> painted, units segmented, rounds, units screened."""
+    from experiments.rlpolicy import rl3
+    tissue = s.tissue
     idx = np.flatnonzero(tissue.ravel())
     grid = lambda v: (lambda g: (g.__setitem__(idx, v), g.reshape(tissue.shape))[1])(np.zeros(tissue.size, bool))
     with torch.no_grad():
@@ -127,7 +152,6 @@ def run_ppo(a, m, pools, path, tissue, p_g, probs, tab):
         a3 = m.nets.pi3(rl3.states(s, m.run['state'], m.run['tok6'])[1]).argmax(1).numpy()
     paint = grid(scr_t & (a3 == rl3.PAINT))
     z = segment_traced(io, s, grid(scr_t & (a3 == rl3.ZOOM)), paint, np.zeros_like(tissue))
-    STASH['stage'] = 1
     return paint, int(z.sum()), 1, int(scr.sum())
 
 
