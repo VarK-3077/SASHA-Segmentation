@@ -62,9 +62,16 @@ def mlp(d_in, d_out, h=64):
 
 
 class Nets(nn.Module):
-    def __init__(self, d6, d3):
+    def __init__(self, d6, d3, h=64):
         super().__init__()
-        self.pi6, self.v6, self.pi3, self.v3 = mlp(d6, 1), mlp(d6, 1), mlp(d3, 3), mlp(d3, 1)
+        self.pi6, self.v6, self.pi3, self.v3 = mlp(d6, 1, h), mlp(d6, 1, h), mlp(d3, 3, h), mlp(d3, 1, h)
+
+
+def nets_of(sd):
+    """Networks sized from a saved state dict (input widths and hidden width), weights loaded."""
+    nets = Nets(sd['pi6.0.weight'].shape[1], sd['pi3.0.weight'].shape[1], sd['pi6.0.weight'].shape[0])
+    nets.load_state_dict(sd)
+    return nets
 
 
 def rule_actions(s, veto=0.0):
@@ -129,12 +136,12 @@ def rollout(nets, d, lam, rng, W=(W_LES, W_FP)):
 def ppo(data, lam, a, seed, log=None, veto=0.0):
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
-    nets = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1]).to(data[0]['x6'].device)
+    nets = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1], getattr(a, 'hidden', 64)).to(data[0]['x6'].device)
     ref = None
     if a.init != 'none':
         clone(nets, data, seed=seed, veto=veto)
         if a.kl > 0:      # frozen copy of the clone: the policy pays a.kl x KL(policy || clone) for drifting from it
-            ref = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1]).to(data[0]['x6'].device)
+            ref = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1], getattr(a, 'hidden', 64)).to(data[0]['x6'].device)
             ref.load_state_dict(nets.state_dict())
             for q in ref.parameters():
                 q.requires_grad_(False)
@@ -179,8 +186,7 @@ def player(run):
     """A saved run's all-train policy as a function slide -> played route (greedy)."""
     def play(s):
         x6, x3 = states(s, run['state'], run['tok6'])
-        nets = Nets(x6.shape[1], x3.shape[1])
-        nets.load_state_dict(run['nets'])
+        nets = nets_of(run['nets'])
         return greedy(nets, dict(s=s, x6=x6, x3=x3))
     return play
 
@@ -216,6 +222,7 @@ def main():
     ap.add_argument('--ent', type=float, default=0.003)
     ap.add_argument('--kl', type=float, default=0.0, help='weight of KL(policy || warm-start clone); 0 = no anchor')
     ap.add_argument('--vscale', type=float, default=0.05)
+    ap.add_argument('--hidden', type=int, default=64, help='width of the policy and critic MLPs')
     ap.add_argument('--log_every', type=int, default=100)
     ap.add_argument('--w_les', type=float, default=W_LES, help='reward per lesion detected')
     ap.add_argument('--w_fp', type=float, default=W_FP, help='penalty per false-positive candidate (times its score)')

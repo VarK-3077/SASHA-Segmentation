@@ -121,8 +121,7 @@ def attach_policy(m, spec, tok3, device):
     run = pickle.load(open(f'{W.ROOT}/search/{name}/res.pkl', 'rb'))['runs'][rk]
     assert not run['tok6'], 'this loader does not set up the second L6 head'
     m.tok3, m.key, m.tok6, m.run = load_head(tok3, -1, device), 't_top16', None, run
-    m.nets = rl3.Nets(*(v.shape[1] for v in (run['nets']['pi6.0.weight'], run['nets']['pi3.0.weight'])))
-    m.nets.load_state_dict(run['nets'])
+    m.nets = rl3.nets_of(run['nets'])
     RR.RealEp.on_screen = on_screen
     return run
 
@@ -190,7 +189,10 @@ def main():
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--slides', nargs='*', default=None)
+    ap.add_argument('--seg_thr', type=float, default=None, help="the L2 head's threshold in the border-tracing feedback (default run_real's 0.4, the stage-A head's)")
     a = ap.parse_args()
+    if a.seg_thr is not None:
+        RR.SEG_THR = a.seg_thr
     run = None
     if a.policy:
         import pickle
@@ -227,8 +229,7 @@ def main():
     if run is not None:
         from experiments.rlpolicy import rl3
         m.run = run
-        m.nets = rl3.Nets(*(v.shape[1] for v in (run['nets']['pi6.0.weight'], run['nets']['pi3.0.weight'])))
-        m.nets.load_state_dict(run['nets'])
+        m.nets = rl3.nets_of(run['nets'])
         RR.run_seq = run_ppo
     with torch.no_grad():
         m.seg(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device=a.device))

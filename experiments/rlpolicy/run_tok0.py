@@ -71,10 +71,12 @@ def main():
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--screen_workers', type=int, default=8)
     ap.add_argument('--seg_workers', type=int, default=8)
+    ap.add_argument('--seg_ckpt', default=T0.CKPT, help='level-0 token head weights')
+    ap.add_argument('--thr', type=float, default=T0.THR, help="that head's threshold in the border-tracing feedback")
     a = ap.parse_args()
+    T0.THR = a.thr
     a.seg, a.design, a.g_level, a.backbone, a.actor, a.tag, a.ckpt, a.critic, a.eps, a.lam = 'tok0', 'coarse', 6, 'kaiko_vitl14', 'seq', None, 'final', None, 0.0, 1.0
     a.tau, a.tau_zoom, a.follow, a.paint, a.h, a.stages, a.cluster, a.rule, a.minpos, a.minfrac, a.mode = 0.6, 0.5, 1, 0.99, 0.02, None, 0, 'fixed', 1, 0.0, 'last'
-    a.seg_ckpt = T0.CKPT                       # run_real's models load this head: the level-0 one
     R.CFG.update(design='coarse', tz=0.5, S=4.0, fp=1.0, tcs=(0.99,), cluster=False, follow=True)
     R.build_actions()
     os.makedirs(a.out_dir, exist_ok=True)
