@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import pickle
+import shutil
 from multiprocessing import get_context
 from types import SimpleNamespace
 
@@ -60,8 +61,28 @@ def seq_pfa(a, m, ctx, tissue, p_g):
     return play(ep, s)
 
 
+def same_as_threshold(PC, m, pools, name):
+    """Untimed look at one slide's L6 view (run_cascade's own tissue grid and global pass): does this screener
+    pick exactly the units the threshold screener picks? Then the two runs are the same computation."""
+    import openslide
+    path = PC.slide_path(name)
+    sl = openslide.OpenSlide(path)
+    w, h = sl.dimensions
+    t5 = PC.tissue_mask(sl)
+    ht, wt = -(-h // PC.TOK_PX), -(-w // PC.TOK_PX)
+    tok = PC.cv2.resize(t5.astype(np.float32), (wt, ht), interpolation=PC.cv2.INTER_AREA if PC.TOK_PX > PC.L5 else PC.cv2.INTER_NEAREST) > 0
+    g = 2 * RR.TOK
+    hu, wu = -(-h // PC.CROP), -(-w // PC.CROP)
+    tissue = tok[:hu * g, :wu * g]
+    tissue = np.pad(tissue, ((0, hu * g - tissue.shape[0]), (0, wu * g - tissue.shape[1]))).reshape(hu, g, wu, g).any((1, 3))
+    _, p_g = RR.global_pass(m, path, m.g_level, t5, hu, wu, pools['screen'])
+    s = slide_state(tissue, p_g)
+    return bool((decide(s) == (s.tissue & (s.pg >= CFG['t']))).all())
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--reuse', default=None, help="pfa only: the threshold screener's run dir; a slide on which this screener picks the same units takes that run's map and time record instead of being run again")
     ap.add_argument('--mode', choices=('thr', 'clone', 'ppo'), required=True)
     ap.add_argument('--seg', choices=('l2', 'pfa'), required=True)
     ap.add_argument('--out_dir', required=True)
@@ -109,8 +130,16 @@ def main():
         torch.cuda.synchronize()
         for n in names:
             out = os.path.join(a.out_dir, n + '.npz')
-            if not os.path.exists(out):
-                PC.run_slide(n, ra, m, seg, pools, out)
+            if os.path.exists(out):
+                continue
+            if a.reuse and same_as_threshold(PC, m, pools, n):
+                rec = json.load(open(f'{a.reuse}/{n}_time.json'))
+                rec.update(reused_from=a.reuse)
+                shutil.copy(f'{a.reuse}/{n}.npz', out)
+                json.dump(rec, open(out[:-4] + '_time.json', 'w'))
+                print(f'{n}: same units as the threshold screener, its timed result reused', flush=True)
+                continue
+            PC.run_slide(n, ra, m, seg, pools, out)
     json.dump(dict(mode=a.mode, seg=a.seg, t=res['t'], seg_ckpt=a.seg_ckpt), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
     open(os.path.join(a.out_dir, 'DONE'), 'w').write(f'{len(names)} slides\n')
 
