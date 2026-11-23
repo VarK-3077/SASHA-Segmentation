@@ -52,6 +52,13 @@ def on_screen(self, sel):
             s.p3[r, c], s.probs[r, c] = 1 - v[k, 0], v[k]
             s.p_core[r, c] = v[k, 1] if v[k].argmax() == 1 else 0.0
             s.t_top4[r, c], s.t_top16[r, c], s.t_max[r, c], s.t_mean[r, c], s.t_unit[r, c], s.t_core[r, c] = st[k]
+        if getattr(m, 'seg3', None) is not None:      # a second token-level head on the same tokens (rl3 --state ...+seg)
+            with torch.no_grad():
+                tl, ul = m.seg3(tk.float())
+                top = ((torch.sigmoid(tl) * 255).round() / 255).flatten(1).sort(1, descending=True)[0]
+                st = torch.stack([top[:, :4].mean(1), top[:, :16].mean(1), top[:, 0], top.mean(1), torch.sigmoid(ul[:, 0]), torch.sigmoid(ul[:, 1])], 1).cpu().numpy()
+            for k, (r, c, _) in enumerate(items[i:i + 128]):
+                s.s_top4[r, c], s.s_top16[r, c], s.s_max[r, c], s.s_mean[r, c], s.s_unit[r, c], s.s_core[r, c] = st[k]
 
 
 def wrap_global(orig):
@@ -103,7 +110,7 @@ def segment_traced(io, s, zoom, paint, done):
 
 def new_state(m, tissue, p_g):
     s = slide_state(tissue, p_g)
-    for k in ('t_top4', 't_top16', 't_max', 't_mean', 't_unit', 't_core'):
+    for k in ('t_top4', 't_top16', 't_max', 't_mean', 't_unit', 't_core') + (('s_top4', 's_top16', 's_max', 's_mean', 's_unit', 's_core') if getattr(m, 'seg3', None) is not None else ()):
         setattr(s, k, np.zeros(tissue.shape, np.float32))
     if m.tok6 is not None:
         s.g_max, s.g_mean = second_l6(m, *tissue.shape)
@@ -121,6 +128,7 @@ def attach_policy(m, spec, tok3, device):
     run = pickle.load(open(f'{W.ROOT}/search/{name}/res.pkl', 'rb'))['runs'][rk]
     assert not run['tok6'], 'this loader does not set up the second L6 head'
     m.tok3, m.key, m.tok6, m.run = load_head(tok3, -1, device), 't_top16', None, run
+    m.seg3 = load_head(run['seg3'], -1, device) if run.get('seg3') else None
     m.nets = rl3.nets_of(run['nets'])
     RR.RealEp.on_screen = on_screen
     return run
@@ -229,11 +237,14 @@ def main():
     if run is not None:
         from experiments.rlpolicy import rl3
         m.run = run
+        m.seg3 = load_head(run['seg3'], -1, a.device) if run.get('seg3') else None
         m.nets = rl3.nets_of(run['nets'])
         RR.run_seq = run_ppo
     with torch.no_grad():
         m.seg(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device=a.device))
         m.tok3(m.embed([np.zeros((3, 224, 224), np.uint8)] * 2, m.pca_3).float())
+        if getattr(m, 'seg3', None) is not None:
+            m.seg3(m.embed([np.zeros((3, 224, 224), np.uint8)] * 2, m.pca_3).float())
         tokens(m.enc, torch.zeros(2, 3, 224, 224, dtype=torch.uint8, device=a.device))
     torch.cuda.synchronize()
     for n in a.slides or names_of('test', 6):

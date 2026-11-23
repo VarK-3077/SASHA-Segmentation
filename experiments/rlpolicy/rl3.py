@@ -9,8 +9,8 @@
 # candidate lies in the unit - W_FP x score per false-positive candidate - lam x the unit's own seconds. Border
 # tracing runs after the policy as in the supervised cascade. --init rule clones the supervised rule first
 # (cross-entropy on its decisions), --init consensus clones the consensus policy (vsel.py), --init none starts
-# from random weights. --state sup+tok | tok | sup picks
-# the L3 readers in the state. Cross-fitted: five policies each trained without one fold play that fold's slides
+# from random weights, --init oracle clones the oracle router's labels (oracle.py). --state sup+tok | tok | sup picks
+# the L3 readers in the state; --state emb gives the L3 policy the unit's pooled embedding instead of any head output. Cross-fitted: five policies each trained without one fold play that fold's slides
 # (greedy); a sixth trained on every train slide is the one the test slides get.
 # Usage: python -m experiments.rlpolicy.rl3 --tok3 t1 --out NAME --lams 0.5 1 2 [--tok6 g0] [--init rule]
 
@@ -30,6 +30,7 @@ from experiments.rlprobe.cost import L2, L3
 W_LES, W_FP = 0.248, 0.0497
 LEAVE, ZOOM, PAINT = 0, 1, 2
 SLIDES = None
+SEG3 = None
 
 
 def lg(p):
@@ -53,7 +54,14 @@ def states(s, kind, tok6):
         c3 += [lg(s.p3), lg(s.p_core)]
     if 'tok' in kind:
         c3 += [lg(s.t_top4), lg(s.t_top16), lg(s.t_max), lg(s.t_unit), lg(s.t_mean), lg(s.t_core)]
+    if 'seg' in kind:        # a second token-level head, trained on the L2 segmenter's own output (tag SEG3)
+        if not hasattr(s, 's_unit'):
+            s.add_tok3(SEG3, 's')
+        c3 += [lg(s.s_top4), lg(s.s_top16), lg(s.s_max), lg(s.s_unit), lg(s.s_mean), lg(s.s_core)]
     f = lambda cols: torch.from_numpy(np.stack([c[m] for c in cols], 1).astype(np.float32))
+    if kind == 'emb':        # no head outputs at L3: the unit's pooled level-3 embedding (mean and max over its tokens)
+        from experiments.rlpolicy import emb3
+        return f(c6), torch.from_numpy(emb3.grid(s)[m])
     return f(c6), f(c3)
 
 
@@ -84,17 +92,44 @@ def rule_actions(s, veto=0.0):
     return torch.from_numpy(scr.astype(np.float32)), torch.from_numpy(a3)
 
 
-def clone(nets, data, steps=3000, seed=0, veto=0.0):
-    """Behaviour cloning of the teacher (supervised rule or consensus policy): both policies fitted to its decisions."""
+def oracle_actions(s, tag):
+    """The oracle router's labels (oracle.py, cascade mode): the supervised L6 screen, and per unit the action the
+    ground truth and the segmenter's real output call for. Only screened units carry an L3 label."""
+    m = s.tissue
+    scr = (s.pg >= 0.6)[m]
+    a3 = np.load(f'{W.ROOT}/oracle/{tag}/{s.name}.npy').reshape(m.shape)[m].astype(np.int64)
+    return torch.from_numpy(scr.astype(np.float32)), torch.from_numpy(a3)
+
+
+def empty_actions(s):
+    """The supervised rule minus the units where the segmenter outputs nothing: a teacher that needs no ground
+    truth and leaves the map unchanged (ladder.py's row). Painted core units stay."""
+    m = s.tissue
+    seen = np.zeros(m.size, bool)
+    seen[s.cu_unit] = True
+    core = s.p_core >= 0.99
+    want = (s.p3 >= 0.5) & (seen.reshape(m.shape) | core)
+    a3 = np.where(want, np.where(core, PAINT, ZOOM), LEAVE)[m]
+    return torch.from_numpy((s.pg >= 0.6)[m].astype(np.float32)), torch.from_numpy(a3)
+
+
+def clone(nets, data, steps=3000, seed=0, veto=0.0, oracle=None, cw=1.0, wd=0.0):
+    """Behaviour cloning of the teacher (supervised rule, consensus policy, or the oracle labels): both policies
+    fitted to its decisions. With oracle labels the L3 policy is fitted on the screened units only, and cw weighs
+    the zoom and paint classes (the labels are not a function of the state, so the operating point is a choice)."""
     x6 = torch.cat([d['x6'] for d in data]); x3 = torch.cat([d['x3'] for d in data])
-    t6, t3 = (torch.cat(v) for v in zip(*[rule_actions(d['s'], veto) for d in data]))
+    teach = (lambda d: empty_actions(d['s'])) if oracle == 'empty' else (lambda d: oracle_actions(d['s'], oracle)) if oracle else (lambda d: rule_actions(d['s'], veto))
+    t6, t3 = (torch.cat(v) for v in zip(*[teach(d) for d in data]))
     t6, t3 = t6.to(x6.device), t3.to(x6.device)
-    opt = torch.optim.Adam(list(nets.pi6.parameters()) + list(nets.pi3.parameters()), lr=3e-3)
+    w3 = torch.tensor([1.0, cw, cw], device=x6.device)
+    rows3 = torch.nonzero(t6 > 0)[:, 0] if oracle else torch.arange(len(x3), device=x6.device)
+    opt = torch.optim.AdamW(list(nets.pi6.parameters()) + list(nets.pi3.parameters()), lr=3e-3, weight_decay=wd)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, steps)
     g = torch.Generator().manual_seed(seed)
     for _ in range(steps):
         i = torch.randint(len(x6), (8192,), generator=g).to(x6.device)
-        loss = nn.functional.binary_cross_entropy_with_logits(nets.pi6(x6[i])[:, 0], t6[i]) + nn.functional.cross_entropy(nets.pi3(x3[i]), t3[i])
+        j = rows3[torch.randint(len(rows3), (8192,), generator=g).to(x6.device)] if oracle else i
+        loss = nn.functional.binary_cross_entropy_with_logits(nets.pi6(x6[i])[:, 0], t6[i]) + nn.functional.cross_entropy(nets.pi3(x3[j]), t3[j], weight=w3)
         opt.zero_grad(); loss.backward(); opt.step(); sched.step()
 
 
@@ -139,7 +174,7 @@ def ppo(data, lam, a, seed, log=None, veto=0.0):
     nets = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1], getattr(a, 'hidden', 64)).to(data[0]['x6'].device)
     ref = None
     if a.init != 'none':
-        clone(nets, data, seed=seed, veto=veto)
+        clone(nets, data, steps=getattr(a, 'clone_steps', 3000), seed=seed, veto=veto, oracle=a.oracle if a.init == 'oracle' else 'empty' if a.init == 'empty' else None, cw=getattr(a, 'cw', 1.0), wd=getattr(a, 'clone_wd', 0.0))
         if a.kl > 0:      # frozen copy of the clone: the policy pays a.kl x KL(policy || clone) for drifting from it
             ref = Nets(data[0]['x6'].shape[1], data[0]['x3'].shape[1], getattr(a, 'hidden', 64)).to(data[0]['x6'].device)
             ref.load_state_dict(nets.state_dict())
@@ -185,6 +220,8 @@ def ppo(data, lam, a, seed, log=None, veto=0.0):
 def player(run):
     """A saved run's all-train policy as a function slide -> played route (greedy)."""
     def play(s):
+        global SEG3
+        SEG3 = run.get('seg3')
         x6, x3 = states(s, run['state'], run['tok6'])
         nets = nets_of(run['nets'])
         return greedy(nets, dict(s=s, x6=x6, x3=x3))
@@ -211,7 +248,12 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--lams', type=float, nargs='+', required=True)
     ap.add_argument('--state', default='sup+tok')
-    ap.add_argument('--init', choices=('rule', 'consensus', 'none'), default='rule')
+    ap.add_argument('--init', choices=('rule', 'consensus', 'oracle', 'empty', 'none'), default='rule', help='empty: the rule minus the units where the segmenter outputs nothing')
+    ap.add_argument('--seg3', default=None, help='tag of a token-level head trained on the segmenter output, for --state ...+seg')
+    ap.add_argument('--oracle', default='cascade_reward', help='--init oracle: which of oracle.py label sets the clones imitate')
+    ap.add_argument('--cw', type=float, default=1.0, help='--init oracle: weight of the zoom and paint classes in the cloning loss')
+    ap.add_argument('--clone_steps', type=int, default=3000)
+    ap.add_argument('--clone_wd', type=float, default=0.0, help='weight decay of the cloning step (AdamW); the embedding state needs it')
     ap.add_argument('--teacher', default='vsel_t1@t_top16:0.5', help='--init consensus: the vsel run whose fold vetoes the clones imitate')
     ap.add_argument('--updates', type=int, default=400)
     ap.add_argument('--episodes', type=int, default=64)
@@ -230,6 +272,8 @@ def main():
     ap.add_argument('--workers', type=int, default=24)
     ap.add_argument('--device', default='cpu', help='where the networks live (the simulator stays on the CPU)')
     a = ap.parse_args()
+    global SEG3
+    SEG3 = a.seg3
     slides = S.load('train', a.tok3, tok6=a.tok6)
     a.vetoes = None
     if a.init == 'consensus':       # each fold's clone imitates the veto fitted without that fold; index -1 = all slides
@@ -256,7 +300,7 @@ def main():
                 cv = [by[s.name] for s in slides]
                 print(f'lam {lam}: cross-fitted {fmt(S.summarise(cv))}  lost {sum(max(0, rule[i]["found"] - cv[i]["found"]) for i in tum)}  gained '
                       f'{sum(max(0, cv[i]["found"] - rule[i]["found"]) for i in tum)}  Dice below rule on {sum(cv[i]["dice"] < rule[i]["dice"] - 1e-9 for i in tum)}', flush=True)
-                res['runs'][f'lam{lam}'] = dict(cv=cv, nets=got[(lam, -1)][0], fold_nets=[got[(lam, j)][0] for j in range(W.N_FOLDS)], state=a.state, tok6=a.tok6)
+                res['runs'][f'lam{lam}'] = dict(cv=cv, nets=got[(lam, -1)][0], fold_nets=[got[(lam, j)][0] for j in range(W.N_FOLDS)], state=a.state, tok6=a.tok6, seg3=a.seg3)
                 pickle.dump(res, open(f'{out_dir}/res.pkl', 'wb'))
     print('done', flush=True)
 

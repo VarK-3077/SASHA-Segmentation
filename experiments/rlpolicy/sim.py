@@ -33,9 +33,11 @@ class Slide:
         if tok3 is not None:
             self.add_tok3(tok3)
 
-    def add_tok3(self, tag):
-        """The token-level L3 head's outputs as unit grids: unit probability, mean of the top 4 tokens, mean token
-        probability (the head's tumour share), core logit, and the mean probability on each border strip."""
+    def add_tok3(self, tag, prefix='t'):
+        """A token-level L3 head's outputs as unit grids (attributes PREFIX_unit, _core, _top4, _top16, _max, _mean,
+        _mix, _edges): unit probability, core probability, mean of the top 4 / 16 tokens, maximum and mean token
+        probability, and the mean probability on each border strip. prefix 't' is the tumour head; a second head
+        (e.g. one trained on the segmenter's output) can sit beside it under another prefix."""
         p = np.load(f'{W.head_dir(tag)}/pred/{self.name}.npz')
         rc = p['rc']
         ok = (rc[:, 0] < self.hu) & (rc[:, 1] < self.wu)
@@ -48,11 +50,12 @@ class Slide:
             a[r, c] = v
             return a
         sig = lambda x: 1 / (1 + np.exp(-x))
-        self.t_unit, self.t_core = grid(sig(p['unit'][ok, 0])), grid(sig(p['unit'][ok, 1]))
-        self.t_top4, self.t_mean, self.t_max = grid(flat[:, :4].mean(1)), grid(flat.mean(1)), grid(flat[:, 0])
-        self.t_top16, self.t_mix = grid(flat[:, :16].mean(1)), 0.5 * (self.t_unit + self.t_top4)
-        self.t_edges = grid(np.stack([tp[:, 0].mean(-1), tp[:, -1].mean(-1), tp[:, :, 0].mean(-1), tp[:, :, -1].mean(-1)], -1))
-
+        vals = dict(unit=grid(sig(p['unit'][ok, 0])), core=grid(sig(p['unit'][ok, 1])), top4=grid(flat[:, :4].mean(1)), mean=grid(flat.mean(1)),
+                    max=grid(flat[:, 0]), top16=grid(flat[:, :16].mean(1)),
+                    edges=grid(np.stack([tp[:, 0].mean(-1), tp[:, -1].mean(-1), tp[:, :, 0].mean(-1), tp[:, :, -1].mean(-1)], -1)))
+        vals['mix'] = 0.5 * (vals['unit'] + vals['top4'])
+        for k, v in vals.items():
+            setattr(self, f'{prefix}_{k}', v)
 
     def add_tok6(self, tag, key='g_max'):
         """The second L6 head's per-unit score as a grid; `key` picks the unit maximum or mean of its 2 x 2 tokens."""
@@ -105,10 +108,12 @@ def outcome(s, zoom, paint):
         tp = tp[s.lesions - 1]
     fp = mx[lab == 0] if s.tumour else mx
     out = dict(froc=(fp.tolist(), tp, len(s.lesions)), n_fp=int(len(fp)), found=int((tp > 0).sum()))
+    out['fp_paint'] = [float(v) for v, l in zip(mx[len(first):], lab[len(first):]) if l == 0 or not s.tumour]      # painted groups off any lesion
     if s.tumour:
         kept = np.zeros(int(s.cu_comp.max()) + 1 if len(s.cu_comp) else 0, bool)
         kept[s.cu_comp[first[s.cu_max[first] >= SEED]]] = True
         rows = sel[kept[comp]] if len(sel) else sel
+        out['parts'] = (int(s.cu_tp[rows].sum()), int(s.cu_n[rows].sum()), int(s.gt_tis[paint].sum()), int(s.n_tis[paint].sum()))   # zoom tp, zoom pixels, paint tp, paint pixels
         inter, pred = s.cu_tp[rows].sum() + s.gt_tis[paint].sum(), s.cu_n[rows].sum() + s.n_tis[paint].sum()
         out['dice'] = float(2 * inter / (pred + s.G)) if pred + s.G > 0 else 1.0
     return out
