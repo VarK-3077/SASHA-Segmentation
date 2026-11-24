@@ -11,10 +11,18 @@ import numpy as np
 from scipy import ndimage as nd
 
 from experiments.rlpolicy import where as W
-from experiments.rlprobe.cost import seconds
+from experiments.rlprobe import cost as _cost
 from utils.segmentation_metrics import froc as froc_of
 
-SEED = 0.9
+SEED = float(os.environ.get('RLPOLICY_SEED', 0.9))      # Dice cleaning seed; 0 = raw map (the PFA rows' convention)
+L2_S = float(os.environ.get('RLPOLICY_L2_S', _cost.L2))  # seconds per segmented unit (6.6 ms for the L2 head; ~0.139 s for PFA at level 0)
+L3_S = _cost.L3
+
+
+def seconds(n_l3, n_l2):
+    return _cost.FIXED + L3_S * n_l3 + L2_S * n_l2
+
+
 ROUND_S = 0.025          # est. cost of one extra batched round (rlcascade env2)
 N4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 

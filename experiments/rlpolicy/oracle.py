@@ -25,7 +25,6 @@ import numpy as np
 
 from experiments.rlpolicy import sim as S
 from experiments.rlpolicy import where as W
-from experiments.rlprobe.cost import seconds
 
 OUT = f'{W.ROOT}/oracle'
 LEAVE, ZOOM, PAINT = 0, 1, 2
@@ -47,7 +46,7 @@ def play(s, mode, act):
     if mode == 'cascade':
         return S.finish(s, s.tissue & (s.pg >= 0.6), z, p)
     out = S.outcome(s, z, p)
-    out.update(n_l3=0, n_l2=int(z.sum()), n_paint=int(p.sum()), zoom=z, paint=p, sec=seconds(0, int(z.sum())))
+    out.update(n_l3=0, n_l2=int(z.sum()), n_paint=int(p.sum()), zoom=z, paint=p, sec=S.seconds(0, int(z.sum())))
     return out
 
 

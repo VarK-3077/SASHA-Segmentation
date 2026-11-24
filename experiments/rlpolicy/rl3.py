@@ -25,7 +25,6 @@ import torch.nn as nn
 
 from experiments.rlpolicy import sim as S
 from experiments.rlpolicy import where as W
-from experiments.rlprobe.cost import L2, L3
 
 W_LES, W_FP = 0.248, 0.0497
 LEAVE, ZOOM, PAINT = 0, 1, 2
@@ -162,8 +161,8 @@ def rollout(nets, d, lam, rng, W=(W_LES, W_FP)):
     out = route(s, scr.cpu().numpy(), a3.cpu().numpy())
     q = torch.from_numpy(S.unit_rewards(s, out, W[0], W[1])[s.tissue].astype(np.float32)).to(dev)
     act = a3 != LEAVE
-    r3 = q * act - lam * L2 * (a3 == ZOOM)
-    r6 = scr * (r3 - lam * L3)
+    r3 = q * act - lam * S.L2_S * (a3 == ZOOM)
+    r6 = scr * (r3 - lam * S.L3_S)
     lp6 = torch.where(scr, torch.log(p6.clamp(min=1e-8)), torch.log((1 - p6).clamp(min=1e-8)))
     return dict(x6=d['x6'], a6=scr.float(), lp6=lp6, r6=r6, x3=d['x3'][scr], a3=a3[scr], lp3=lp3[scr].gather(1, a3[scr][:, None])[:, 0], r3=r3[scr])
 

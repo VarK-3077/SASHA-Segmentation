@@ -20,8 +20,13 @@ from experiments.rlpolicy import where as W
 from experiments.rlprobe import maps as M
 from experiments.rlprobe import score as RS
 
-U5, THR = FS.UNIT5, FS.THR
-DENSE = {'test': CW.TEST_L2, 'train': f'{CW.ROOT}/oof_l2'}
+# Another segmenter's maps can be put behind the same tables through the environment (the PFA simulator does):
+#   RLPOLICY_DENSE_TRAIN / _TEST  directory of dense maps        RLPOLICY_MAP_LOADER=pfa  maps in pfa_scannet's npz layout
+#   RLPOLICY_THR                  map threshold (PFA rows: 0.3)  RLPOLICY_SEG_SIDE        directory of NAME.npz with the
+#                                                                 per-unit seg_frac / seg_edges a policy sees after a zoom
+U5, THR = FS.UNIT5, float(os.environ.get('RLPOLICY_THR', FS.THR))
+DENSE = {'test': os.environ.get('RLPOLICY_DENSE_TEST', CW.TEST_L2), 'train': os.environ.get('RLPOLICY_DENSE_TRAIN', f'{CW.ROOT}/oof_l2')}
+LOADER, SEG_SIDE = os.environ.get('RLPOLICY_MAP_LOADER', 'l2'), os.environ.get('RLPOLICY_SEG_SIDE')
 OUT = f'{W.ROOT}/sim'
 
 
@@ -46,11 +51,17 @@ def build(name, split):
     z = dict(np.load(f'{W.UNITS}/{name}.npz'))
     if split == 'train':
         z.update(np.load(f'{W.UNITS}/oof/{name}.npz'))
-    seg = np.load(f'{W.UNITS}/seg/{name}.npz')
+    seg = np.load(f'{SEG_SIDE}/{name}.npz' if SEG_SIDE else f'{W.UNITS}/seg/{name}.npz')
     hu, wu = z['tissue'].shape
     gt, mpp = FS.gt_of(name)
     tt = C.tissue_tok(name)
-    m5 = RS.as_loaded(np.where(tt, M.dense(f'{DENSE[split]}/{name}.npz'), 0).astype(np.float32), gt['shape'])
+    if LOADER == 'pfa':       # already on the level-5 raster and zero outside PFA's tissue mask
+        from experiments.pfa_scannet.score_maps import load_map
+        raw = load_map(f'{DENSE[split]}/{name}.npz', gt['shape'])
+        m5 = np.zeros(gt['shape'], np.float32)
+        m5[:raw.shape[0], :raw.shape[1]] = raw
+    else:
+        m5 = RS.as_loaded(np.where(tt, M.dense(f'{DENSE[split]}/{name}.npz'), 0).astype(np.float32), gt['shape'])
     t5 = RS.as_loaded(tt.astype(np.float32), gt['shape']) > 0
     lab, k = FS.nd.label(m5 >= THR, structure=FS.CS.S8)
     idx = np.flatnonzero(lab)

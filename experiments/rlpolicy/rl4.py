@@ -26,7 +26,6 @@ from scipy import ndimage as nd
 from experiments.rlpolicy import rl3
 from experiments.rlpolicy import sim as S
 from experiments.rlpolicy import where as W
-from experiments.rlprobe.cost import L2
 
 S8 = np.ones((3, 3), bool)
 DC, DS = 9, 9
@@ -112,7 +111,7 @@ def play(nets, d, B, rng=None, lam=0.0, W=(8.0, rl3.W_FP)):
     # credit: each segmented unit's reward minus its seconds goes to the round that caused it; traced units go to
     # the earliest round among the clump units of their connected group
     q = S.unit_rewards(s, out, W[0], W[1]).ravel()
-    net = np.where(out['zoom'].ravel(), q - lam * L2, 0.0)
+    net = np.where(out['zoom'].ravel(), q - lam * S.L2_S, 0.0)
     grp, n = nd.label(out['zoom'], structure=S8)
     flat = grp.ravel()
     first = np.full(n + 1, 10 ** 6)
