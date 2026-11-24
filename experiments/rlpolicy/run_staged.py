@@ -158,8 +158,50 @@ def ppo_play(io, s, m):
     with torch.no_grad():
         a3 = m.nets.pi3(rl3.states(s, m.run['state'], m.run['tok6'])[1]).argmax(1).numpy()
     paint = grid(scr_t & (a3 == rl3.PAINT))
+    if getattr(m, 'probe', None):
+        z, rounds = probe_traced(io, s, grid(scr_t & (a3 == rl3.ZOOM)), paint, *m.probe)
+        return paint, int(z.sum()), rounds, int(scr.sum())
     z = segment_traced(io, s, grid(scr_t & (a3 == rl3.ZOOM)), paint, np.zeros_like(tissue))
     return paint, int(z.sum()), 1, int(scr.sum())
+
+
+def probe_traced(io, s, cand, paint, B, rescue):
+    """Probe-and-stop as probe_eval.play does it in the simulator: the zoom candidates in connected clumps, best
+    token-head score first, B clumps per round; a round segments the best unit of each of its clumps (the probe),
+    their units scoring >= rescue, and the rest of the clumps whose probe returned something in the round before;
+    it stops after a round in which no probe returned anything. Then border tracing. -> units segmented, rounds."""
+    from scipy import ndimage as nd
+    grp, k = nd.label(cand, structure=np.ones((3, 3), bool))
+    done = np.zeros(cand.size, bool)
+    rounds = 0
+    if k:
+        flat, sc = grp.ravel(), s.t_top16.ravel()
+        idx = np.arange(1, k + 1)
+        best = nd.maximum(s.t_top16, grp, idx)
+        probe = np.array([p[0] * cand.shape[1] + p[1] for p in nd.maximum_position(s.t_top16, grp, idx)])
+        order = np.argsort(-best, kind='stable')
+        fill = np.zeros(cand.size, bool)
+        j = 0
+        while j < k or fill.any():
+            b = order[j:j + B] if j < k else order[:0]
+            j += B
+            now = fill.copy()
+            now[probe[b]] = True
+            for c in b:
+                now |= (flat == c + 1) & (sc >= rescue)
+            now &= ~done
+            io.on_zoom(now.reshape(cand.shape))
+            done |= now
+            rounds += 1
+            hit = s.pos.ravel()[probe[b]] if len(b) else np.zeros(0, bool)
+            fill = np.zeros(cand.size, bool)
+            for c in b[hit]:
+                fill |= (flat == c + 1) & ~done
+            if len(b) and not hit.any():
+                break
+    done = done.reshape(cand.shape)
+    got = segment_traced(io, s, np.zeros_like(cand), paint, done | paint)
+    return done | got, max(rounds, 1)
 
 
 def run_staged(a, m, pools, path, tissue, p_g, probs, tab):
@@ -197,6 +239,7 @@ def main():
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--slides', nargs='*', default=None)
+    ap.add_argument('--probe', default=None, help='B:RESCUE with --policy: probe-and-stop on the policy\'s zoom candidates (probe_eval.py)')
     ap.add_argument('--seg_thr', type=float, default=None, help="the L2 head's threshold in the border-tracing feedback (default run_real's 0.4, the stage-A head's)")
     a = ap.parse_args()
     if a.seg_thr is not None:
@@ -237,6 +280,7 @@ def main():
     if run is not None:
         from experiments.rlpolicy import rl3
         m.run = run
+        m.probe = (int(a.probe.split(':')[0]), float(a.probe.split(':')[1])) if a.probe else None
         m.seg3 = load_head(run['seg3'], -1, a.device) if run.get('seg3') else None
         m.nets = rl3.nets_of(run['nets'])
         RR.run_seq = run_ppo
