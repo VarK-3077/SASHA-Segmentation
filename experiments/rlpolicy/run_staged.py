@@ -66,7 +66,23 @@ def wrap_global(orig):
         t = np.pad(t5, ((0, t5.shape[0] % 2), (0, t5.shape[1] % 2)))
         tt = t.reshape(t.shape[0] // 2, 2, t.shape[1] // 2, 2).any((1, 3))       # tissue on the level-2 map grid
         STASH['tissue_tok'] = np.pad(tt, ((0, max(0, hu * G - tt.shape[0])), (0, max(0, wu * G - tt.shape[1]))))[:hu * G, :wu * G]
+        STASH['t5'] = t5
         return orig(m, path, level, t5, hu, wu, pool)
+    return f
+
+
+def with_verify(fn):
+    """Level-1 verification of the routed map (experiments.segfp.verify, the segmenter study's fixed operating
+    point) as the last step of a slide's sequence, inside the timed region: the routed level-2 map, zero outside
+    tissue, is replaced in place by the verified one. The crops read and the seconds spent go into the time record."""
+    def f(a, m, pools, path, tissue, p_g, probs, tab):
+        out = fn(a, m, pools, path, tissue, p_g, probs, tab)
+        name = os.path.splitext(os.path.basename(path))[0]
+        probs *= STASH['tissue_tok']
+        v, n, info = m.verify(name, probs, paint=out[0], tissue5=STASH['t5'])
+        probs[...] = v
+        STASH['verify'] = dict(l1_crops=int(n), verify_s=float(info['seconds']), parts=int(info['parts']), verified=int(info['verified']))
+        return out
     return f
 
 
@@ -239,6 +255,7 @@ def main():
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--slides', nargs='*', default=None)
+    ap.add_argument('--verify', action='store_true', help='verify the routed map at level 1 at the end of each slide (segfp.verify.Verifier)')
     ap.add_argument('--probe', default=None, help='B:RESCUE with --policy: probe-and-stop on the policy\'s zoom candidates (probe_eval.py)')
     ap.add_argument('--seg_thr', type=float, default=None, help="the L2 head's threshold in the border-tracing feedback (default run_real's 0.4, the stage-A head's)")
     a = ap.parse_args()
@@ -284,6 +301,13 @@ def main():
         m.seg3 = load_head(run['seg3'], -1, a.device) if run.get('seg3') else None
         m.nets = rl3.nets_of(run['nets'])
         RR.run_seq = run_ppo
+    m.verify = None
+    if a.verify:
+        from experiments.segfp.verify import Verifier
+        m.verify = Verifier(device=a.device)
+        RR.run_seq = with_verify(RR.run_seq)
+        with torch.no_grad():
+            m.verify.head(m.verify.net.tokens(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device=a.device)))
     with torch.no_grad():
         m.seg(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device=a.device))
         m.tok3(m.embed([np.zeros((3, 224, 224), np.uint8)] * 2, m.pca_3).float())
@@ -300,8 +324,10 @@ def main():
         tj = out[:-4] + '_time.json'
         rec = json.load(open(tj))
         rec.update(load1=os.getloadavg()[0], foreign_cpu_s=(cpu_total() - c0) - (cpu_of(mine) - o0), model='staged', stage=STASH.get('stage'))
+        if a.verify:
+            rec.update(STASH.get('verify', {}))
         json.dump(rec, open(tj, 'w'))
-    json.dump(dict(cfg, tok3=a.tok3, seg_ckpt=a.seg_ckpt), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
+    json.dump(dict(cfg, tok3=a.tok3, seg_ckpt=a.seg_ckpt, probe=a.probe, verify=a.verify), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
     open(os.path.join(a.out_dir, 'DONE'), 'w').write('done\n')
 
 
