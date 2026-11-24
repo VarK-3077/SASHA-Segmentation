@@ -256,6 +256,7 @@ def main():
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--slides', nargs='*', default=None)
     ap.add_argument('--verify', action='store_true', help='verify the routed map at level 1 at the end of each slide (segfp.verify.Verifier)')
+    ap.add_argument('--verify_ckpt', default=None, help='level-1 verifier weights (default: the Verifier\'s own, the official level-1 stage-D head)')
     ap.add_argument('--probe', default=None, help='B:RESCUE with --policy: probe-and-stop on the policy\'s zoom candidates (probe_eval.py)')
     ap.add_argument('--seg_thr', type=float, default=None, help="the L2 head's threshold in the border-tracing feedback (default run_real's 0.4, the stage-A head's)")
     a = ap.parse_args()
@@ -304,7 +305,7 @@ def main():
     m.verify = None
     if a.verify:
         from experiments.segfp.verify import Verifier
-        m.verify = Verifier(device=a.device)
+        m.verify = Verifier(device=a.device, **(dict(ckpt=a.verify_ckpt) if a.verify_ckpt else {}))
         RR.run_seq = with_verify(RR.run_seq)
         with torch.no_grad():
             m.verify.head(m.verify.net.tokens(torch.zeros(2, 4, 3, 224, 224, dtype=torch.uint8, device=a.device)))
@@ -327,7 +328,7 @@ def main():
         if a.verify:
             rec.update(STASH.get('verify', {}))
         json.dump(rec, open(tj, 'w'))
-    json.dump(dict(cfg, tok3=a.tok3, seg_ckpt=a.seg_ckpt, probe=a.probe, verify=a.verify), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
+    json.dump(dict(cfg, tok3=a.tok3, seg_ckpt=a.seg_ckpt, probe=a.probe, verify=a.verify, verify_ckpt=a.verify_ckpt), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
     open(os.path.join(a.out_dir, 'DONE'), 'w').write('done\n')
 
 
