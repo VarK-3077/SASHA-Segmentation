@@ -32,15 +32,21 @@ def run(a, m, pools, path, tissue, p_g, probs, tab):
     io = RR.RealEp(s, 1.0)
     io.real = (pools, m, path, probs, tab)
     rc = np.argwhere(tissue)
-    zoom = np.zeros_like(tissue)
+    zoom, paint = np.zeros_like(tissue), np.zeros_like(tissue)
     for k in range(0, len(rc), 256):
         items = pools['screen'].map(read_screen, [(path, 3, int(r), int(c)) for r, c in rc[k:k + 256]])
         with torch.no_grad():
-            p = torch.sigmoid(m.cls_head(cls3.cls_tokens(m.enc, [it[2] for it in items]))).cpu().numpy()
+            y = m.cls_head(cls3.cls_tokens(m.enc, [it[2] for it in items]))
+            p = (torch.softmax(y, 1) if a.classes == 4 else torch.sigmoid(y)).cpu().numpy()
         for (r, c, _), v in zip(items, p):
-            zoom[r, c] = v >= a.thr
+            if a.classes == 4:      # normal / core / boundary / small: paint core, segment boundary and small
+                act = (v.argmax() != 0) if a.thr is None else (1 - v[0] >= a.thr)
+                kind = v[1:].argmax() + 1
+                paint[r, c], zoom[r, c] = act and kind == 1, act and kind != 1
+            else:
+                zoom[r, c] = v >= a.thr
     io.on_zoom(zoom)
-    return np.zeros_like(tissue), int(zoom.sum()), 1, int(tissue.sum())
+    return paint, int(zoom.sum()), 1, int(tissue.sum())
 
 
 def main():
@@ -49,11 +55,14 @@ def main():
     ap.add_argument('--seg_ckpt', default='/data2/venkatavks/pfa_ckpt/named/tokhead_kaiko_vitl14_stageA_input_l2.pt')
     ap.add_argument('--device', default='cuda:0')
     ap.add_argument('--slides', nargs='*', default=None)
+    ap.add_argument('--classes', type=int, choices=(2, 4), default=2, help='4: the four-class MLP (cls3 train4); core painted, boundary + small segmented')
+    ap.add_argument('--rule', choices=('t', 'argmax'), default='t', help='4 classes: thresholded on 1 - p_normal (picked t) or plain argmax')
     a, _ = ap.parse_known_args()
-    thr = json.load(open(f'{cls3.OUT}/pick.json'))['t']
+    root = cls3.OUT4 if a.classes == 4 else cls3.OUT
+    thr = None if (a.classes == 4 and a.rule == 'argmax') else json.load(open(f'{root}/pick.json'))['t']
     ra = SimpleNamespace(design='coarse', g_level=6, backbone='kaiko_vitl14', actor='seq', tag=None, ckpt='final', lam=1.0, tau=0.6, tau_zoom=0.5, follow=0, paint=2.0,
                          h=0.02, stages=None, cluster=0, rule='fixed', minpos=1, minfrac=0.0, mode='last', critic=None, eps=0.02, seg_ckpt=a.seg_ckpt,
-                         out_dir=a.out_dir, device=a.device, screen_workers=8, seg_workers=8, model='crude', thr=thr)
+                         out_dir=a.out_dir, device=a.device, screen_workers=8, seg_workers=8, model='crude', thr=thr, classes=a.classes)
     R.CFG.update(design='coarse', tz=0.5, S=4.0, fp=1.0, tcs=(2.0,), cluster=False, follow=False)
     R.build_actions()
     os.makedirs(a.out_dir, exist_ok=True)
@@ -61,8 +70,8 @@ def main():
     pools = {'screen': ctx.Pool(8), 'seg': ctx.Pool(8)}
     mine = [os.getpid()] + [p.pid for pl in pools.values() for p in pl._pool]
     m = RR.Models(ra)
-    sd = torch.load(f'{cls3.OUT}/f-1.pt', map_location=a.device)
-    m.cls_head = cls3.Head(sd['mu'], sd['sd']).to(a.device).eval()
+    sd = torch.load(f'{root}/f-1.pt', map_location=a.device)
+    m.cls_head = cls3.Head(sd['mu'], sd['sd'], n_out=4 if a.classes == 4 else 1).to(a.device).eval()
     m.cls_head.load_state_dict(sd)
     RR.global_pass = no_global
     RR.run_seq = run
@@ -81,7 +90,7 @@ def main():
         rec = json.load(open(tj))
         rec.update(load1=os.getloadavg()[0], foreign_cpu_s=(cpu_total() - c0) - (cpu_of(mine) - o0), model='crude')
         json.dump(rec, open(tj, 'w'))
-    json.dump(dict(thr=thr, seg_ckpt=a.seg_ckpt), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
+    json.dump(dict(thr=thr, classes=a.classes, rule=a.rule, seg_ckpt=a.seg_ckpt), open(os.path.join(a.out_dir, 'run.json'), 'w'), indent=1)
     open(os.path.join(a.out_dir, 'DONE'), 'w').write('done\n')
 
 
