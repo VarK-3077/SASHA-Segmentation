@@ -51,6 +51,8 @@ def states(s, kind, tok6):
     c3 = [lg(s.pg)] + ([lg(s.g_max)] if tok6 else [])
     if 'sup' in kind:
         c3 += [lg(s.p3), lg(s.p_core)]
+    elif 'pcore' in kind:    # the unit head's core probability without its tumour score p3
+        c3 += [lg(s.p_core)]
     if 'tok' in kind:
         c3 += [lg(s.t_top4), lg(s.t_top16), lg(s.t_max), lg(s.t_unit), lg(s.t_mean), lg(s.t_core)]
     if 'seg' in kind:        # a second token-level head, trained on the L2 segmenter's own output (tag SEG3)
